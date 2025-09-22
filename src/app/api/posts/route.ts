@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Apenas professores e admins podem criar posts
-    if (authUser.role !== 'professor' && authUser.role !== 'admin') {
+    if (authUser.role !== 'instructor' && authUser.role !== 'admin') {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
     }
 

@@ -84,7 +84,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           label: 'Check-ins',
         }
       )
-    } else if (user.role === 'professor') {
+    } else if (user.role === 'instructor') {
       baseItems.push(
         {
           key: '/dashboard/professor',

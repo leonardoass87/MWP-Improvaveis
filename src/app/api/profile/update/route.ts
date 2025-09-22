@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import { db } from '@/lib/db'
+import { executeQuery } from '@/lib/database'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
@@ -70,10 +70,10 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verificar se o email já está em uso por outro usuário
-    const existingUser = await db.query(
+    const existingUser = await executeQuery(
       'SELECT id FROM users WHERE email = ? AND id != ?',
       [email, id]
-    )
+    ) as any[]
 
     if (existingUser.length > 0) {
       return NextResponse.json(
@@ -83,10 +83,10 @@ export async function PUT(request: NextRequest) {
     }
 
     // Buscar o usuário atual
-    const currentUser = await db.query(
+    const currentUser = await executeQuery(
       'SELECT * FROM users WHERE id = ?',
       [id]
-    )
+    ) as any[]
 
     if (currentUser.length === 0) {
       return NextResponse.json(
@@ -108,7 +108,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Atualizar o perfil
-    await db.query(`
+    await executeQuery(`
       UPDATE users SET 
         name = ?,
         email = ?,
@@ -143,10 +143,10 @@ export async function PUT(request: NextRequest) {
     ])
 
     // Buscar o usuário atualizado
-    const updatedUser = await db.query(
+    const updatedUser = await executeQuery(
       'SELECT id, name, email, role, belt, degree, phone, address, emergency_contact as emergencyContact, emergency_phone as emergencyPhone, birth_date as birthDate, weight, height, medical_info as medicalInfo, goals, active FROM users WHERE id = ?',
       [id]
-    )
+    ) as any[]
 
     if (updatedUser.length === 0) {
       return NextResponse.json(

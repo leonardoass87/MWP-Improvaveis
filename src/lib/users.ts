@@ -16,8 +16,8 @@ const defaultAdmin: User[] = [
     belt: 'black',
     degree: 1,
     active: true,
-    created_at: new Date(),
-    updated_at: new Date()
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ]
 

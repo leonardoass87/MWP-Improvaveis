@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'instructor' | 'student'
 
-export type BeltColor = 'branca' | 'azul' | 'roxa' | 'marrom' | 'preta'
+export type BeltColor = 'branca' | 'azul' | 'roxa' | 'marrom' | 'preta' | 'white' | 'blue' | 'purple' | 'brown' | 'black'
 
 export interface User {
   id: number

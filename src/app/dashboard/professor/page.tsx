@@ -611,7 +611,7 @@ export default function ProfessorDashboard() {
       title: 'Performance',
       key: 'performance',
       width: 180,
-      render: (_, record: StudentStats) => (
+      render: (_: any, record: StudentStats) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: '#b9bbbe', fontSize: '12px' }}>Frequência:</span>
@@ -642,7 +642,7 @@ export default function ProfessorDashboard() {
       title: 'Status',
       key: 'status',
       width: 120,
-      render: (_, record: StudentStats) => {
+      render: (_: any, record: StudentStats) => {
         const getStatusInfo = () => {
           if (record.attendanceRate >= 90) {
             return { text: 'Excelente', color: '#52c41a', bgColor: '#52c41a20' };
@@ -680,7 +680,7 @@ export default function ProfessorDashboard() {
       title: 'Ações',
       key: 'actions',
       width: 120,
-      render: (_, record: StudentStats) => (
+      render: (_: any, record: StudentStats) => (
         <Space size="small">
           <Tooltip title="Ver detalhes do aluno">
             <Button

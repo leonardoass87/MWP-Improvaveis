@@ -36,11 +36,11 @@ export async function POST(request: NextRequest) {
       email,
       password, // Em produção seria hash
       role: 'student', // Novos usuários são sempre estudantes
-      belt: 'white', // Faixa branca por padrão
+      belt: 'branca', // Faixa branca por padrão
       degree: 0,
       active: true,
-      created_at: new Date(),
-      updated_at: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     // Adicionar à lista de usuários
