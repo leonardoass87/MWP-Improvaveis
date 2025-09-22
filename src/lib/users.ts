@@ -118,7 +118,7 @@ export function getUserStats() {
     registeredUsers: registeredUsers.length,
     byRole: {
       admin: allUsers.filter(u => u.role === 'admin').length,
-      professor: allUsers.filter(u => u.role === 'professor').length,
+      instructor: allUsers.filter(u => u.role === 'instructor').length,
       student: allUsers.filter(u => u.role === 'student').length
     }
   }

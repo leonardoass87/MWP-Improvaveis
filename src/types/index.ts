@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'professor' | 'aluno'
+export type UserRole = 'admin' | 'instructor' | 'student'
 
 export type BeltColor = 'branca' | 'azul' | 'roxa' | 'marrom' | 'preta'
 

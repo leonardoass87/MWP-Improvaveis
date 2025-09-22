@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateToken } from '@/lib/auth'
-import { findUserByEmail, getUserStats } from '@/lib/users'
+import { executeQuery } from '@/lib/database'
+import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,18 +14,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Buscar usuário por email (inclui mockados + registrados)
-    const user = findUserByEmail(email)
-    
-    // Log das estatísticas para debug
-    console.log('Estatísticas de usuários:', getUserStats())
+    // Buscar usuário por email no banco de dados
+    const users = await executeQuery(
+      'SELECT id, name, email, password, role, belt_level as belt, degree, active FROM users WHERE email = ?',
+      [email]
+    ) as any[]
 
-    if (!user) {
+    if (users.length === 0) {
       return NextResponse.json(
         { error: 'Credenciais inválidas' },
         { status: 401 }
       )
     }
+
+    const user = users[0]
 
     // Verificar se o usuário está ativo
     if (!user.active) {
@@ -34,8 +37,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // VERIFICAÇÃO TEMPORÁRIA DE SENHA (SEM HASH)
-    if (password !== user.password) {
+    // Verificar senha (com hash ou sem hash para compatibilidade)
+    let passwordValid = false
+    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+      // Senha com hash
+      passwordValid = await bcrypt.compare(password, user.password)
+    } else {
+      // Senha sem hash (para dados de teste)
+      passwordValid = password === user.password
+    }
+
+    if (!passwordValid) {
       return NextResponse.json(
         { error: 'Credenciais inválidas' },
         { status: 401 }

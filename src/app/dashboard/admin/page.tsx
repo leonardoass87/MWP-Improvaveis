@@ -13,7 +13,7 @@ interface User {
   id: number
   name: string
   email: string
-  role: 'admin' | 'professor' | 'student'
+  role: 'admin' | 'instructor' | 'student'
   belt: string
   degree: number
   active: boolean
@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     totalUsers: 0,
     activeUsers: 0,
     students: 0,
-    professors: 0
+    instructors: 0
   })
   const router = useRouter()
 
@@ -56,66 +56,59 @@ export default function AdminDashboard() {
 
   const loadData = async () => {
     try {
-      // Simular dados de usuários
-      const mockUsers: User[] = [
-        {
-          id: 1,
-          name: 'Admin Principal',
-          email: 'admin@teste.com',
-          role: 'admin',
-          belt: 'black',
-          degree: 5,
-          active: true,
-          createdAt: '2024-01-01'
-        },
-        {
-          id: 2,
-          name: 'Professor Silva',
-          email: 'professor@teste.com',
-          role: 'professor',
-          belt: 'black',
-          degree: 3,
-          active: true,
-          createdAt: '2024-01-05'
-        },
-        {
-          id: 3,
-          name: 'João Aluno',
-          email: 'joao@teste.com',
-          role: 'student',
-          belt: 'blue',
-          degree: 2,
-          active: true,
-          createdAt: '2024-01-10'
-        },
-        {
-          id: 4,
-          name: 'Maria Aluna',
-          email: 'maria@teste.com',
-          role: 'student',
-          belt: 'white',
-          degree: 1,
-          active: true,
-          createdAt: '2024-01-15'
-        },
-        {
-          id: 5,
-          name: 'Pedro Inativo',
-          email: 'pedro@teste.com',
-          role: 'student',
-          belt: 'white',
-          degree: 0,
-          active: false,
-          createdAt: '2024-01-20'
-        }
-      ]
+      const token = localStorage.getItem('token')
+      if (!token) return
 
-      setUsers(mockUsers)
+      // Carregar usuários reais da API
+      const usersResponse = await fetch('/api/users', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      
+      let usersData: User[] = []
+      if (usersResponse.ok) {
+        const apiUsers = await usersResponse.json()
+        usersData = apiUsers.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          belt: user.belt_level || 'white',
+          degree: user.degree || 0,
+          active: user.active !== false,
+          createdAt: user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'N/A'
+        }))
+      } else {
+        // Fallback para dados mockados se a API falhar
+        usersData = [
+          {
+            id: 1,
+            name: 'Admin Principal',
+            email: 'admin@teste.com',
+            role: 'admin',
+            belt: 'black',
+            degree: 5,
+            active: true,
+            createdAt: '2024-01-01'
+          },
+          {
+            id: 2,
+            name: 'Professor Silva',
+            email: 'professor@teste.com',
+            role: 'instructor',
+            belt: 'black',
+            degree: 3,
+            active: true,
+            createdAt: '2024-01-05'
+          }
+        ]
+      }
+
+      setUsers(usersData)
       setStats({
-        totalUsers: mockUsers.length,
-        activeUsers: mockUsers.filter(u => u.active).length,
-        students: mockUsers.filter(u => u.role === 'student').length,
-        professors: mockUsers.filter(u => u.role === 'professor').length
+        totalUsers: usersData.length,
+        activeUsers: usersData.filter(u => u.active).length,
+        students: usersData.filter(u => u.role === 'student').length,
+        instructors: usersData.filter(u => u.role === 'instructor').length
       })
 
     } catch (error) {
@@ -338,7 +331,7 @@ export default function AdminDashboard() {
           <Card>
             <Statistic
               title="Professores"
-              value={stats.professors}
+              value={stats.instructors}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#722ed1' }}
             />

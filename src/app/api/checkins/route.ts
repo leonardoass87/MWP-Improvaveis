@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
 
     let query = `
-      SELECT c.*, u.name as user_name, u.belt, u.degree 
+      SELECT c.*, u.name as user_name, u.belt_level as belt, u.degree 
       FROM checkins c 
       JOIN users u ON c.user_id = u.id 
       WHERE 1=1
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Se for aluno, só pode ver seus próprios check-ins
-    if (authUser.role === 'aluno') {
+    if (authUser.role === 'student') {
       query += ' AND c.user_id = ?'
       params.push(authUser.id)
     }
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Apenas alunos podem fazer check-in
-    if (authUser.role !== 'aluno') {
+    if (authUser.role !== 'student') {
       return NextResponse.json({ error: 'Apenas alunos podem fazer check-in' }, { status: 403 })
     }
 

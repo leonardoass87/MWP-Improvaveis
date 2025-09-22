@@ -15,21 +15,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Apenas professor e admin podem ver estatísticas
-    if (authUser.role !== 'professor' && authUser.role !== 'admin') {
+    if (authUser.role !== 'instructor' && authUser.role !== 'admin') {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
     }
 
     // Total de alunos
     const totalStudentsResult = await executeQuery(
-      'SELECT COUNT(*) as count FROM users WHERE role = "aluno"'
+      'SELECT COUNT(*) as count FROM users WHERE role = "student"'
     ) as any[]
     const totalStudents = totalStudentsResult[0].count
 
-    // Alunos ativos
-    const activeStudentsResult = await executeQuery(
-      'SELECT COUNT(*) as count FROM users WHERE role = "aluno" AND active = true'
-    ) as any[]
-    const activeStudents = activeStudentsResult[0].count
+    // Alunos ativos (verificar se coluna active existe)
+    let activeStudents = totalStudents; // fallback
+    try {
+      const activeStudentsResult = await executeQuery(
+        'SELECT COUNT(*) as count FROM users WHERE role = "student" AND active = true'
+      ) as any[]
+      activeStudents = activeStudentsResult[0].count
+    } catch (error) {
+      // Se a coluna active não existir, usar total de alunos
+      console.log('Coluna active não encontrada, usando total de alunos')
+    }
 
     // Check-ins do dia
     const today = new Date().toISOString().split('T')[0]

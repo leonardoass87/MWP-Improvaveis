@@ -28,7 +28,7 @@ export default function AlunoDashboard() {
     }
 
     const parsedUser = JSON.parse(userData)
-    if (parsedUser.role !== 'aluno') {
+    if (parsedUser.role !== 'student') {
       router.push(`/dashboard/${parsedUser.role}`)
       return
     }
@@ -66,7 +66,7 @@ export default function AlunoDashboard() {
       
       if (studentsResponse.ok) {
         const studentsData = await studentsResponse.json()
-        setStudents(studentsData.filter((u: User) => u.role === 'aluno' && u.active))
+        setStudents(studentsData.filter((u: User) => u.role === 'student' && u.active))
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -165,8 +165,8 @@ export default function AlunoDashboard() {
       title: 'Faixa',
       key: 'belt',
       render: (record: CheckInWithUser) => (
-        <Tag color={getBeltColor(record.user.belt || 'branca')}>
-          {record.user.belt} {record.user.degree}º grau
+        <Tag color={getBeltColor(record.user.belt_level || 'white')}>
+          {record.user.belt_level} {record.user.degree}º grau
         </Tag>
       ),
     },

@@ -24,7 +24,7 @@ export async function PUT(
     // Admin pode editar qualquer usuário, professor pode editar apenas alunos
     if (authUser.role === 'admin') {
       // Admin pode editar tudo
-    } else if (authUser.role === 'professor') {
+    } else if (authUser.role === 'instructor') {
       // Professor só pode editar faixa e grau de alunos
       const userToUpdate = await executeQuery(
         'SELECT role FROM users WHERE id = ?',
@@ -35,7 +35,7 @@ export async function PUT(
         return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
       }
 
-      if (userToUpdate[0].role !== 'aluno') {
+      if (userToUpdate[0].role !== 'student') {
         return NextResponse.json({ error: 'Professor só pode editar alunos' }, { status: 403 })
       }
 
@@ -56,7 +56,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
     }
 
-    const setClause = updateFields.map(field => `${field} = ?`).join(', ')
+    // Mapear 'belt' para 'belt_level' no banco de dados
+    const setClause = updateFields.map(field => {
+      const dbField = field === 'belt' ? 'belt_level' : field
+      return `${dbField} = ?`
+    }).join(', ')
     const values = updateFields.map(field => updateData[field as keyof UpdateUserData])
     values.push(userId)
 
@@ -67,7 +71,7 @@ export async function PUT(
 
     // Retornar usuário atualizado
     const updatedUser = await executeQuery(
-      'SELECT id, name, email, role, belt, degree, active, created_at, updated_at FROM users WHERE id = ?',
+      'SELECT id, name, email, role, belt_level as belt, degree, active, created_at, updated_at FROM users WHERE id = ?',
       [userId]
     ) as any[]
 
