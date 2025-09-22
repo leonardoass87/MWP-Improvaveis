@@ -5,40 +5,16 @@ import path from 'path'
 // Caminho para o arquivo de dados temporário
 const DATA_FILE = path.join(process.cwd(), 'temp-users.json')
 
-// DADOS TEMPORÁRIOS PARA TESTE (SEM BANCO DE DADOS)
-const mockUsers: User[] = [
+// USUÁRIO ADMIN PADRÃO DO SISTEMA
+const defaultAdmin: User[] = [
   {
     id: 1,
     name: 'Administrador',
     email: 'admin@bjj.com',
-    password: 'password', // Em produção seria hash
+    password: 'Odranoel1203', // Senha padrão do admin
     role: 'admin',
     belt: 'black',
     degree: 1,
-    active: true,
-    created_at: new Date(),
-    updated_at: new Date()
-  },
-  {
-    id: 2,
-    name: 'Professor Silva',
-    email: 'professor@bjj.com',
-    password: 'password',
-    role: 'professor',
-    belt: 'brown',
-    degree: 0,
-    active: true,
-    created_at: new Date(),
-    updated_at: new Date()
-  },
-  {
-    id: 3,
-    name: 'João Aluno',
-    email: 'aluno@bjj.com',
-    password: 'password',
-    role: 'student',
-    belt: 'blue',
-    degree: 2,
     active: true,
     created_at: new Date(),
     updated_at: new Date()
@@ -70,9 +46,9 @@ function saveRegisteredUsers(users: User[]): void {
 // Lista de usuários registrados dinamicamente (carregada do arquivo)
 let registeredUsers: User[] = loadRegisteredUsers()
 
-// Função para obter todos os usuários (mockados + registrados)
+// Função para obter todos os usuários (admin padrão + registrados)
 export function getAllUsers(): User[] {
-  return [...mockUsers, ...registeredUsers]
+  return [...defaultAdmin, ...registeredUsers]
 }
 
 // Função para adicionar novo usuário
@@ -114,7 +90,7 @@ export function getUserStats() {
   const allUsers = getAllUsers()
   return {
     total: allUsers.length,
-    mockUsers: mockUsers.length,
+    defaultAdmin: defaultAdmin.length,
     registeredUsers: registeredUsers.length,
     byRole: {
       admin: allUsers.filter(u => u.role === 'admin').length,

@@ -212,22 +212,7 @@ export default function LoginPage() {
             </div>
           </Form>
 
-          <div className="mt-6 p-4 bg-discord-darker rounded border border-gray-700">
-            <Text className="text-gray-400 text-sm block mb-2">
-              Usuários de teste:
-            </Text>
-            <div className="space-y-1 text-xs">
-              <div className="text-gray-300">
-                <strong>Admin:</strong> admin@bjj.com / password
-              </div>
-              <div className="text-gray-300">
-                <strong>Professor:</strong> professor@bjj.com / password
-              </div>
-              <div className="text-gray-300">
-                <strong>Aluno:</strong> carlos@bjj.com / password
-              </div>
-            </div>
-          </div>
+
         </Card>
       </div>
 

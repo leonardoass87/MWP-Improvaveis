@@ -86,31 +86,14 @@ export default function StudentDashboard() {
 
   const loadData = async () => {
     try {
-      // Simular carregamento de dados (em produção seria uma API)
-      const mockCheckIns: CheckIn[] = [
-        {
-          id: 1,
-          date: '2024-01-15',
-          time: '19:30',
-          status: 'approved',
-          approvedBy: 'Professor Silva',
-          approvedAt: '2024-01-15T20:00:00Z'
-        },
-        {
-          id: 2,
-          date: '2024-01-17',
-          time: '19:25',
-          status: 'approved',
-          approvedBy: 'Professor Silva',
-          approvedAt: '2024-01-17T20:15:00Z'
-        }
-      ]
+      // Inicializar com dados vazios (em produção seria carregado da API)
+      const checkInsData: CheckIn[] = []
 
-      setCheckIns(mockCheckIns)
+      setCheckIns(checkInsData)
       
       // Verificar se já fez check-in hoje
       const today = new Date().toISOString().split('T')[0]
-      const todayCheckIn = mockCheckIns.find(c => c.date === today)
+      const todayCheckIn = checkInsData.find(c => c.date === today)
       setHasCheckedInToday(!!todayCheckIn)
 
       // Verificar se há check-in pendente no localStorage
@@ -132,9 +115,9 @@ export default function StudentDashboard() {
       }
 
       // Calcular estatísticas
-      const totalCheckIns = mockCheckIns.length
-      const approvedCheckIns = mockCheckIns.filter(c => c.status === 'approved').length
-      const pendingCheckIns = mockCheckIns.filter(c => c.status === 'pending').length
+      const totalCheckIns = checkInsData.length
+      const approvedCheckIns = checkInsData.filter(c => c.status === 'approved').length
+      const pendingCheckIns = checkInsData.filter(c => c.status === 'pending').length
       const attendanceRate = totalCheckIns > 0 ? (approvedCheckIns / totalCheckIns) * 100 : 0
 
       setStats({

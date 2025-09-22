@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Form, Select, Input } from 'antd'
-import { UserOutlined, TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Form, Select, Input, Tabs } from 'antd'
+import { UserOutlined, TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, FileTextOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
@@ -21,12 +21,26 @@ interface User {
   createdAt: string
 }
 
+interface Post {
+  id: number
+  title: string
+  content: string
+  published: boolean
+  created_at: string
+  updated_at: string
+  author_name: string
+  author_email: string
+  author_role: string
+}
+
 export default function AdminDashboard() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState<User[]>([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [modalVisible, setModalVisible] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [activeTab, setActiveTab] = useState('users')
   const [form] = Form.useForm()
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -55,6 +69,12 @@ export default function AdminDashboard() {
     loadData()
   }, [router])
 
+  useEffect(() => {
+    if (activeTab === 'posts' && user) {
+      loadPosts()
+    }
+  }, [activeTab, user])
+
   const loadData = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -79,29 +99,8 @@ export default function AdminDashboard() {
           createdAt: user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'N/A'
         }))
       } else {
-        // Fallback para dados mockados se a API falhar
-        usersData = [
-          {
-            id: 1,
-            name: 'Admin Principal',
-            email: 'admin@teste.com',
-            role: 'admin',
-            belt: 'black',
-            degree: 5,
-            active: true,
-            createdAt: '2024-01-01'
-          },
-          {
-            id: 2,
-            name: 'Professor Silva',
-            email: 'professor@teste.com',
-            role: 'instructor',
-            belt: 'black',
-            degree: 3,
-            active: true,
-            createdAt: '2024-01-05'
-          }
-        ]
+        // Se a API falhar, inicializar com dados vazios
+        usersData = []
       }
 
       setUsers(usersData)
@@ -117,6 +116,25 @@ export default function AdminDashboard() {
       message.error('Erro ao carregar dados do dashboard')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadPosts = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/posts', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPosts(data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar posts:', error)
+      message.error('Erro ao carregar posts')
     }
   }
 
@@ -139,50 +157,171 @@ export default function AdminDashboard() {
       okText: 'Excluir',
       cancelText: 'Cancelar',
       okType: 'danger',
-      onOk() {
-        setUsers(prev => prev.filter(u => u.id !== userId))
-        message.success('Usuário excluído com sucesso!')
+      async onOk() {
+        try {
+          const token = localStorage.getItem('token')
+          const response = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            // Remover da interface apenas após sucesso na API
+            setUsers(prev => prev.filter(u => u.id !== userId))
+            // Atualizar estatísticas
+            setStats(prev => ({
+              ...prev,
+              totalUsers: prev.totalUsers - 1,
+              activeUsers: prev.activeUsers - 1
+            }))
+            message.success('Usuário excluído com sucesso!')
+          } else {
+            const error = await response.json()
+            message.error(error.error || 'Erro ao excluir usuário')
+          }
+        } catch (error) {
+          console.error('Erro ao excluir usuário:', error)
+          message.error('Erro ao excluir usuário')
+        }
       }
     })
   }
 
-  const handleToggleActive = (userId: number) => {
-    setUsers(prev => 
-      prev.map(u => 
-        u.id === userId 
-          ? { ...u, active: !u.active }
-          : u
-      )
-    )
-    message.success('Status do usuário atualizado!')
+  const handleDeletePost = async (postId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        message.success('Post deletado com sucesso!')
+        await loadPosts() // Recarregar posts
+      } else {
+        const error = await response.json()
+        message.error(error.message || 'Erro ao deletar post')
+      }
+    } catch (error) {
+      console.error('Erro ao deletar post:', error)
+      message.error('Erro ao deletar post')
+    }
   }
 
-  const handleSubmit = (values: any) => {
-    if (editingUser) {
-      // Editar usuário existente
-      setUsers(prev => 
-        prev.map(u => 
-          u.id === editingUser.id 
-            ? { ...u, ...values }
-            : u
+  const handleToggleActive = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+      const user = users.find(u => u.id === userId)
+      if (!user) return
+
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          active: !user.active
+        })
+      })
+
+      if (response.ok) {
+        // Atualizar na interface apenas após sucesso na API
+        setUsers(prev => 
+          prev.map(u => 
+            u.id === userId 
+              ? { ...u, active: !u.active }
+              : u
+          )
         )
-      )
-      message.success('Usuário atualizado com sucesso!')
-    } else {
-      // Criar novo usuário
-      const newUser: User = {
-        id: Math.max(...users.map(u => u.id)) + 1,
-        ...values,
-        active: true,
-        createdAt: new Date().toISOString().split('T')[0]
+        // Atualizar estatísticas
+        setStats(prev => ({
+          ...prev,
+          activeUsers: user.active ? prev.activeUsers - 1 : prev.activeUsers + 1
+        }))
+        message.success('Status do usuário atualizado!')
+      } else {
+        const error = await response.json()
+        message.error(error.error || 'Erro ao atualizar status do usuário')
       }
-      setUsers(prev => [...prev, newUser])
-      message.success('Usuário criado com sucesso!')
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      message.error('Erro ao atualizar status do usuário')
     }
-    
-    setModalVisible(false)
-    form.resetFields()
-    setEditingUser(null)
+  }
+
+  const handleSubmit = async (values: any) => {
+    try {
+      const token = localStorage.getItem('token')
+      
+      if (editingUser) {
+        // Editar usuário existente
+        const response = await fetch(`/api/users/${editingUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(values)
+        })
+
+        if (response.ok) {
+          const updatedUser = await response.json()
+          setUsers(prev => 
+            prev.map(u => 
+              u.id === editingUser.id 
+                ? { ...u, ...updatedUser }
+                : u
+            )
+          )
+          message.success('Usuário atualizado com sucesso!')
+        } else {
+          const error = await response.json()
+          message.error(error.error || 'Erro ao atualizar usuário')
+          return
+        }
+      } else {
+        // Criar novo usuário
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ...values,
+            active: true
+          })
+        })
+
+        if (response.ok) {
+          const newUser = await response.json()
+          setUsers(prev => [...prev, newUser])
+          setStats(prev => ({
+            ...prev,
+            totalUsers: prev.totalUsers + 1,
+            activeUsers: prev.activeUsers + 1
+          }))
+          message.success('Usuário criado com sucesso!')
+        } else {
+          const error = await response.json()
+          message.error(error.error || 'Erro ao criar usuário')
+          return
+        }
+      }
+      
+      setModalVisible(false)
+      form.resetFields()
+      setEditingUser(null)
+    } catch (error) {
+      console.error('Erro ao salvar usuário:', error)
+      message.error('Erro ao salvar usuário')
+    }
   }
 
   const getBeltColor = (belt: string) => {
@@ -205,36 +344,62 @@ export default function AdminDashboard() {
     return colors[role as keyof typeof colors] || 'default'
   }
 
-  const columns = [
+  const userColumns = [
     {
       title: 'Nome',
       dataIndex: 'name',
       key: 'name',
+      render: (text: string) => <span className="text-white">{text}</span>
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      render: (text: string) => <span className="text-gray-300">{text}</span>
     },
     {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role: string) => (
-        <Tag color={getRoleColor(role)}>
-          {role.charAt(0).toUpperCase() + role.slice(1)}
-        </Tag>
-      )
+      render: (role: string) => {
+        const colors = {
+          admin: 'red',
+          instructor: 'blue',
+          student: 'green'
+        }
+        const labels = {
+          admin: 'Admin',
+          instructor: 'Professor',
+          student: 'Aluno'
+        }
+        return <Tag color={colors[role as keyof typeof colors]}>{labels[role as keyof typeof labels]}</Tag>
+      }
     },
     {
       title: 'Faixa',
       dataIndex: 'belt',
       key: 'belt',
-      render: (belt: string, record: User) => (
-        <Tag color={getBeltColor(belt)} style={{ color: belt === 'white' ? '#000' : '#fff' }}>
-          {belt.charAt(0).toUpperCase() + belt.slice(1)} {record.degree}º
-        </Tag>
-      )
+      render: (belt: string, record: User) => {
+        const beltColors = {
+          white: '#ffffff',
+          blue: '#1890ff',
+          purple: '#722ed1',
+          brown: '#8b4513',
+          black: '#000000'
+        }
+        const beltLabels = {
+          white: 'Branca',
+          blue: 'Azul',
+          purple: 'Roxa',
+          brown: 'Marrom',
+          black: 'Preta'
+        }
+        return (
+          <Tag color={beltColors[belt as keyof typeof beltColors]}>
+            {beltLabels[belt as keyof typeof beltLabels]} {record.degree}º
+          </Tag>
+        )
+      }
     },
     {
       title: 'Status',
@@ -250,12 +415,16 @@ export default function AdminDashboard() {
       title: 'Data de Criação',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleDateString('pt-BR')
+      render: (date: string) => (
+        <span className="text-gray-300">
+          {new Date(date).toLocaleDateString('pt-BR')}
+        </span>
+      )
     },
     {
       title: 'Ações',
       key: 'actions',
-      render: (_: any, record: User) => (
+      render: (record: User) => (
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button 
             size="small" 
@@ -280,6 +449,78 @@ export default function AdminDashboard() {
             Excluir
           </Button>
         </div>
+      )
+    }
+  ]
+
+  const postColumns = [
+    {
+      title: 'Título',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text: string) => <span className="text-white">{text}</span>
+    },
+    {
+      title: 'Autor',
+      dataIndex: 'author_name',
+      key: 'author_name',
+      render: (text: string, record: Post) => (
+        <div>
+          <div className="text-white">{text}</div>
+          <div className="text-gray-400 text-sm">{record.author_email}</div>
+        </div>
+      )
+    },
+    {
+      title: 'Role do Autor',
+      dataIndex: 'author_role',
+      key: 'author_role',
+      render: (role: string) => {
+        const colors = {
+          admin: 'red',
+          instructor: 'blue',
+          student: 'green'
+        }
+        const labels = {
+          admin: 'Admin',
+          instructor: 'Professor',
+          student: 'Aluno'
+        }
+        return <Tag color={colors[role as keyof typeof colors]}>{labels[role as keyof typeof labels]}</Tag>
+      }
+    },
+    {
+      title: 'Status',
+      dataIndex: 'published',
+      key: 'published',
+      render: (published: boolean) => (
+        <Tag color={published ? 'green' : 'orange'}>
+          {published ? 'Publicado' : 'Rascunho'}
+        </Tag>
+      )
+    },
+    {
+      title: 'Data de Criação',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: string) => (
+        <span className="text-gray-300">
+          {new Date(date).toLocaleDateString('pt-BR')}
+        </span>
+      )
+    },
+    {
+      title: 'Ações',
+      key: 'actions',
+      render: (record: Post) => (
+        <Button 
+          size="small" 
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDeletePost(record.id)}
+        >
+          Excluir
+        </Button>
       )
     }
   ]
@@ -346,26 +587,60 @@ export default function AdminDashboard() {
         </Col>
       </Row>
 
-      {/* Gestão de Usuários */}
+      {/* Gestão de Usuários e Posts */}
       <Card 
-        title={<span className="text-white">Gestão de Usuários</span>}
+        title={<span className="text-white">Gestão de Usuários e Posts</span>}
         className="bg-discord-dark border-gray-700"
         style={{ marginTop: '24px' }}
         extra={
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={handleCreateUser}
-          >
-            Novo Usuário
-          </Button>
+          activeTab === 'users' && (
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={handleCreateUser}
+            >
+              Novo Usuário
+            </Button>
+          )
         }
       >
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
+            {
+              key: 'users',
+              label: (
+                <span className="text-white">
+                  <UserOutlined /> Usuários
+                </span>
+              ),
+              children: (
+                <Table
+                  columns={userColumns}
+                  dataSource={users}
+                  rowKey="id"
+                  pagination={{ pageSize: 10 }}
+                />
+              )
+            },
+            {
+              key: 'posts',
+              label: (
+                <span className="text-white">
+                  <FileTextOutlined /> Posts
+                </span>
+              ),
+              children: (
+                <Table
+                  columns={postColumns}
+                  dataSource={posts}
+                  rowKey="id"
+                  pagination={{ pageSize: 10 }}
+                />
+              )
+            }
+          ]}
         />
       </Card>
 

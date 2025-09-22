@@ -32,115 +32,14 @@ export default function ActiveStudentsPage() {
   const [sortBy, setSortBy] = useState('frequency');
   const [filterBelt, setFilterBelt] = useState('all');
 
-  // Mock data - apenas alunos ativos do mês atual
+  // Carregar dados dos alunos ativos (em produção seria da API)
   useEffect(() => {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    
-    // Filtrar apenas alunos que fizeram check-in no mês atual
-    const mockData: ActiveStudent[] = [
-      {
-        id: '1',
-        name: 'João Silva',
-        totalCheckIns: 156,
-        weeklyCheckIns: 4,
-        monthlyCheckIns: 18,
-        frequency: 85,
-        lastCheckIn: '2024-01-15',
-        belt: 'Azul',
-        beltLevel: '2º Grau',
-        joinDate: '2023-01-15'
-      },
-      {
-        id: '2',
-        name: 'Maria Santos',
-        totalCheckIns: 142,
-        weeklyCheckIns: 3,
-        monthlyCheckIns: 16,
-        frequency: 78,
-        lastCheckIn: '2024-01-14',
-        belt: 'Roxa',
-        beltLevel: '1º Grau',
-        joinDate: '2022-08-20'
-      },
-      {
-        id: '3',
-        name: 'Pedro Costa',
-        totalCheckIns: 128,
-        weeklyCheckIns: 5,
-        monthlyCheckIns: 20,
-        frequency: 92,
-        lastCheckIn: '2024-01-15',
-        belt: 'Azul',
-        beltLevel: '3º Grau',
-        joinDate: '2023-03-10'
-      },
-      {
-        id: '4',
-        name: 'Ana Oliveira',
-        totalCheckIns: 98,
-        weeklyCheckIns: 2,
-        monthlyCheckIns: 12,
-        frequency: 65,
-        lastCheckIn: '2024-01-13',
-        belt: 'Branca',
-        beltLevel: '4º Grau',
-        joinDate: '2023-06-05'
-      },
-      {
-        id: '5',
-        name: 'Carlos Ferreira',
-        totalCheckIns: 89,
-        weeklyCheckIns: 3,
-        monthlyCheckIns: 14,
-        frequency: 71,
-        lastCheckIn: '2024-01-12',
-        belt: 'Azul',
-        beltLevel: '1º Grau',
-        joinDate: '2023-02-28'
-      },
-      {
-        id: '6',
-        name: 'Lucia Mendes',
-        totalCheckIns: 76,
-        weeklyCheckIns: 2,
-        monthlyCheckIns: 10,
-        frequency: 68,
-        lastCheckIn: '2024-01-11',
-        belt: 'Branca',
-        beltLevel: '3º Grau',
-        joinDate: '2023-09-15'
-      },
-      {
-        id: '7',
-        name: 'Roberto Lima',
-        totalCheckIns: 203,
-        weeklyCheckIns: 4,
-        monthlyCheckIns: 15,
-        frequency: 88,
-        lastCheckIn: '2024-01-14',
-        belt: 'Marrom',
-        beltLevel: '1º Grau',
-        joinDate: '2021-03-20'
-      },
-      {
-        id: '8',
-        name: 'Fernanda Rocha',
-        totalCheckIns: 134,
-        weeklyCheckIns: 3,
-        monthlyCheckIns: 13,
-        frequency: 75,
-        lastCheckIn: '2024-01-13',
-        belt: 'Azul',
-        beltLevel: '4º Grau',
-        joinDate: '2022-11-10'
-      }
-    ];
+    // Inicializar com dados vazios
+    const studentsData: ActiveStudent[] = [];
 
     setTimeout(() => {
-      setStudents(mockData);
-      setFilteredStudents(mockData);
+      setStudents(studentsData);
+      setFilteredStudents(studentsData);
       setLoading(false);
     }, 1000);
   }, []);

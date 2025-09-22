@@ -215,27 +215,8 @@ export default function ProfessorDashboard() {
         
         studentsData = studentsWithStats
       } else {
-        // Fallback para dados mockados se a API falhar
-        studentsData = [
-          {
-            id: 1,
-            name: 'João Silva',
-            email: 'joao@teste.com',
-            totalCheckIns: 156,
-            approvedCheckIns: 148,
-            attendanceRate: 94.9,
-            belt: 'Azul'
-          },
-          {
-            id: 2,
-            name: 'Maria Santos',
-            email: 'maria@teste.com',
-            totalCheckIns: 142,
-            approvedCheckIns: 138,
-            attendanceRate: 97.2,
-            belt: 'Roxa'
-          }
-        ]
+        // Se a API falhar, inicializar com dados vazios
+        studentsData = []
       }
 
       setStudents(studentsData)
@@ -258,10 +239,10 @@ export default function ProfessorDashboard() {
         // Fallback para estatísticas calculadas localmente
         const today = new Date().toISOString().split('T')[0]
         const todayCheckIns = activePendingCheckIns.filter(c => c.date === today).length
-        const activeStudents = mockStudents.filter(s => s.attendanceRate >= 80).length
+        const activeStudents = studentsData.filter(s => s.attendanceRate >= 80).length
 
         setStats({
-          totalStudents: mockStudents.length,
+          totalStudents: studentsData.length,
           pendingApprovals: activePendingCheckIns.length,
           todayCheckIns,
           activeStudents
