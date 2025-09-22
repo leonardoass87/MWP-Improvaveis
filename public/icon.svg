@@ -1,0 +1,9 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#5865f2"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="white" stroke-width="12"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="white" stroke-width="8"/>
+  <circle cx="256" cy="256" r="60" fill="none" stroke="white" stroke-width="6"/>
+  <rect x="240" y="140" width="32" height="232" fill="white" rx="16"/>
+  <rect x="140" y="240" width="232" height="32" fill="white" rx="16"/>
+  <text x="256" y="420" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold">BJJ</text>
+</svg>
