@@ -3,6 +3,9 @@ import { executeQuery } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { UpdateUserData } from '@/types'
 
+// Força renderização dinâmica para evitar Dynamic Server Error
+export const dynamic = 'force-dynamic'
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }

@@ -3,6 +3,9 @@ import { generateToken } from '@/lib/auth'
 import { prisma } from '@/lib/database'
 import bcrypt from 'bcryptjs'
 
+// Força renderização dinâmica para evitar Dynamic Server Error
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()

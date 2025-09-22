@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { executeQuery } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
+// Força renderização dinâmica para evitar Dynamic Server Error
+export const dynamic = 'force-dynamic'
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import bcrypt from 'bcryptjs'
 
+// Força renderização dinâmica para evitar Dynamic Server Error
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { name, email, password } = await request.json()

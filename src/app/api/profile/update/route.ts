@@ -5,6 +5,9 @@ import { executeQuery } from '@/lib/database'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
+// Força renderização dinâmica para evitar Dynamic Server Error
+export const dynamic = 'force-dynamic'
+
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')

@@ -5,27 +5,35 @@ Este guia explica como fazer o deploy da aplicação BJJ Academy para produção
 ## Pré-requisitos
 
 1. **Conta na Vercel**: Certifique-se de ter uma conta ativa na [Vercel](https://vercel.com)
-2. **Banco de dados MySQL**: Configure um banco de dados MySQL em produção (recomendações abaixo)
+2. **Banco de dados PostgreSQL**: Configure um banco de dados PostgreSQL em produção (recomendações abaixo)
 3. **Repositório Git**: Seu código deve estar em um repositório Git (GitHub, GitLab, etc.)
 
 ## 1. Configuração do Banco de Dados
 
-### Opções recomendadas para banco de dados em produção:
+### Opções recomendadas para banco de dados PostgreSQL em produção:
 
-#### PlanetScale (Recomendado)
-- Acesse [PlanetScale](https://planetscale.com)
-- Crie uma nova database
-- Obtenha as credenciais de conexão
+#### Vercel Postgres (Recomendado)
+- No dashboard da Vercel, vá para seu projeto
+- Clique na aba "Storage"
+- Clique em "Create Database" e selecione "Postgres"
+- As variáveis de ambiente serão configuradas automaticamente
+
+#### Supabase
+- Acesse [Supabase](https://supabase.com)
+- Crie um novo projeto
+- Obtenha a URL de conexão PostgreSQL
 
 #### Railway
 - Acesse [Railway](https://railway.app)
-- Crie um novo projeto MySQL
+- Crie um novo projeto PostgreSQL
 - Obtenha as credenciais de conexão
 
 #### Outras opções
-- AWS RDS
-- Google Cloud SQL
-- DigitalOcean Managed Databases
+- AWS RDS (PostgreSQL)
+- Google Cloud SQL (PostgreSQL)
+- DigitalOcean Managed Databases (PostgreSQL)
+- Neon
+- PlanetScale (com PostgreSQL)
 
 ### Configuração do Schema
 

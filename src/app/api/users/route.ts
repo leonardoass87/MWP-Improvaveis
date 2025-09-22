@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { hashPassword, getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { CreateUserData } from '@/types'
 import { Belt } from '@prisma/client'
+import { CreateUserData } from '@/types'
+
+// Força renderização dinâmica para evitar Dynamic Server Error
+export const dynamic = 'force-dynamic'
 
 // Função para mapear BeltColor para o enum Belt do Prisma
 function mapBeltColor(belt?: string): Belt | null {
