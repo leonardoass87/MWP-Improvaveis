@@ -165,8 +165,8 @@ export default function AlunoDashboard() {
       title: 'Faixa',
       key: 'belt',
       render: (record: CheckInWithUser) => (
-        <Tag color={getBeltColor(record.user.belt_level || 'white')}>
-          {record.user.belt_level} {record.user.degree}º grau
+        <Tag color={getBeltColor(record.user.belt || 'white')}>
+          {record.user.belt} {record.user.degree}º grau
         </Tag>
       ),
     },

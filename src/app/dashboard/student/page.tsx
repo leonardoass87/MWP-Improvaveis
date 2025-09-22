@@ -5,6 +5,7 @@ import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statisti
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, CalendarOutlined, TrophyOutlined, LoadingOutlined } from '@ant-design/icons'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
+import DashboardLayout from '@/components/Layout/DashboardLayout'
 
 const { Title, Text } = Typography
 
@@ -251,40 +252,39 @@ export default function StudentDashboard() {
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-discord-darker to-gray-800 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <Title level={2} style={{ color: '#ffffff', marginBottom: '8px' }}>
-                Dashboard do Aluno
-              </Title>
-              <Text style={{ color: '#b9bbbe', fontSize: '16px' }}>
-                Bem-vindo, {user?.name}! Acompanhe sua frequência e progresso.
-              </Text>
-            </div>
-            <Button
-              type="primary"
-              icon={<TrophyOutlined />}
-              onClick={() => router.push('/dashboard/student/ranking')}
-              style={{
-                background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
-                borderColor: '#ffd700',
-                color: '#000',
-                fontWeight: 'bold',
-                height: '40px',
-                borderRadius: '8px'
-              }}
-            >
-              Ver Ranking
-            </Button>
+    <DashboardLayout user={user}>
+      <div className="space-y-6">
+        {/* Seção de boas-vindas e ação principal */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <Text style={{ color: '#b9bbbe', fontSize: '16px' }}>
+              Bem-vindo, {user?.name}! Acompanhe sua frequência e progresso.
+            </Text>
           </div>
+          <Button
+            type="primary"
+            icon={<TrophyOutlined />}
+            onClick={() => router.push('/dashboard/student/ranking')}
+            style={{
+              background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
+              borderColor: '#ffd700',
+              color: '#000',
+              fontWeight: 'bold',
+              height: '40px',
+              borderRadius: '8px'
+            }}
+          >
+            Ver Ranking
+          </Button>
         </div>
 
         {/* Estatísticas - Layout Mobile Responsivo */}
-        <Row gutter={[16, 16]} className="mb-6 md:mb-8">
+        <Row gutter={[16, 16]}>
           {/* Mobile: 2 cards por linha */}
           <Col xs={12} sm={12} md={6}>
             <Card style={{ background: '#36393f', border: '1px solid #5c6370' }} bodyStyle={{ padding: '16px 12px' }}>
@@ -330,7 +330,7 @@ export default function StudentDashboard() {
         </Row>
 
         {/* Taxa de Frequência - Barra de Progresso */}
-        <Row gutter={[16, 16]} className="mb-6 md:mb-8">
+        <Row gutter={[16, 16]}>
           <Col span={24}>
             <Card style={{ background: '#36393f', border: '1px solid #5c6370' }}>
               <div className="flex items-center justify-between mb-2">
@@ -349,7 +349,7 @@ export default function StudentDashboard() {
         </Row>
 
         {/* Check-in com Timer */}
-        <Row gutter={[16, 16]} className="mb-6 md:mb-8">
+        <Row gutter={[16, 16]}>
           <Col span={24}>
             <Card 
               style={{ 
@@ -581,6 +581,6 @@ export default function StudentDashboard() {
           }
         }
       `}</style>
-    </div>
+    </DashboardLayout>
   )
 }

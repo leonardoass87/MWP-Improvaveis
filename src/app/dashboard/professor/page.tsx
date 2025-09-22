@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select } from 'antd'
-import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined } from '@ant-design/icons'
+import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select, Tooltip } from 'antd'
+import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined } from '@ant-design/icons'
+import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts'
 
 const { Title, Text } = Typography
 const { confirm } = Modal
@@ -195,7 +196,7 @@ export default function ProfessorDashboard() {
                 totalCheckIns,
                 approvedCheckIns,
                 attendanceRate,
-                belt: student.belt_level || 'white'
+                belt: student.belt || 'white'
               }
             } catch (error) {
               console.error(`Erro ao carregar dados do aluno ${student.name}:`, error)
@@ -206,7 +207,7 @@ export default function ProfessorDashboard() {
                 totalCheckIns: 0,
                 approvedCheckIns: 0,
                 attendanceRate: 0,
-                belt: student.belt_level || 'white'
+                belt: student.belt || 'white'
               }
             }
           })
@@ -587,109 +588,153 @@ export default function ProfessorDashboard() {
 
   const studentColumns = [
     {
-      title: 'Nome',
+      title: 'Aluno',
       dataIndex: 'name',
       key: 'name',
-      flex: 1,
-      minWidth: 150,
+      width: 200,
       render: (name: string, record: StudentStats) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
-              width: '8px',
-              height: '8px',
+              width: '40px',
+              height: '40px',
               borderRadius: '50%',
               backgroundColor: getBeltColor(record.belt),
-              border: '1px solid #ffffff30'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: record.belt === 'Branca' ? '#000' : '#fff',
+              fontWeight: 'bold',
+              fontSize: '14px',
+              border: '2px solid #ffffff20'
             }}
-          />
-          <span style={{ color: '#ffffff', fontWeight: '500' }}>{name}</span>
+          >
+            {name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style={{ color: '#ffffff', fontWeight: '500', fontSize: '14px' }}>
+              {name}
+            </div>
+            <div style={{ 
+              color: '#b9bbbe', 
+              fontSize: '12px',
+              marginTop: '2px'
+            }}>
+              Faixa {record.belt}
+            </div>
+          </div>
         </div>
       )
     },
     {
-      title: 'Faixa',
-      dataIndex: 'belt',
-      key: 'belt',
-      width: 100,
-      render: (belt: string) => (
-        <Tag 
-          color={getBeltColor(belt)} 
-          style={{ 
-            color: belt === 'Branca' ? '#000' : '#fff',
-            fontWeight: '500',
-            border: 'none'
-          }}
-        >
-          {belt}
-        </Tag>
+      title: 'Performance',
+      key: 'performance',
+      width: 180,
+      render: (_, record: StudentStats) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#b9bbbe', fontSize: '12px' }}>Frequência:</span>
+            <span style={{ 
+              color: record.attendanceRate >= 90 ? '#52c41a' : record.attendanceRate >= 80 ? '#faad14' : '#ff4d4f',
+              fontWeight: '600',
+              fontSize: '13px'
+            }}>
+              {record.attendanceRate.toFixed(1)}%
+            </span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#b9bbbe', fontSize: '12px' }}>Check-ins:</span>
+            <span style={{ color: '#ffffff', fontWeight: '500', fontSize: '13px' }}>
+              {record.totalCheckIns}
+            </span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#b9bbbe', fontSize: '12px' }}>Aprovados:</span>
+            <span style={{ color: '#52c41a', fontWeight: '500', fontSize: '13px' }}>
+              {record.approvedCheckIns}
+            </span>
+          </div>
+        </div>
       )
     },
     {
-      title: 'Frequência',
-      dataIndex: 'attendanceRate',
-      key: 'attendanceRate',
+      title: 'Status',
+      key: 'status',
       width: 120,
-      render: (rate: number) => (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            color: rate >= 90 ? '#52c41a' : rate >= 80 ? '#faad14' : '#ff4d4f',
-            fontWeight: '600',
-            fontSize: '14px'
+      render: (_, record: StudentStats) => {
+        const getStatusInfo = () => {
+          if (record.attendanceRate >= 90) {
+            return { text: 'Excelente', color: '#52c41a', bgColor: '#52c41a20' };
+          } else if (record.attendanceRate >= 80) {
+            return { text: 'Bom', color: '#faad14', bgColor: '#faad1420' };
+          } else if (record.attendanceRate >= 60) {
+            return { text: 'Regular', color: '#ff7a45', bgColor: '#ff7a4520' };
+          } else {
+            return { text: 'Baixo', color: '#ff4d4f', bgColor: '#ff4d4f20' };
+          }
+        };
+        
+        const status = getStatusInfo();
+        
+        return (
+          <div style={{
+            padding: '6px 12px',
+            borderRadius: '16px',
+            backgroundColor: status.bgColor,
+            border: `1px solid ${status.color}30`,
+            textAlign: 'center'
           }}>
-            {rate.toFixed(1)}%
+            <span style={{ 
+              color: status.color,
+              fontWeight: '600',
+              fontSize: '12px'
+            }}>
+              {status.text}
+            </span>
           </div>
-          <div style={{ 
-            fontSize: '11px', 
-            color: '#b9bbbe',
-            marginTop: '2px'
-          }}>
-            {rate >= 90 ? 'Excelente' : rate >= 80 ? 'Bom' : 'Regular'}
-          </div>
-        </div>
+        );
+      }
+    },
+    {
+      title: 'Ações',
+      key: 'actions',
+      width: 120,
+      render: (_, record: StudentStats) => (
+        <Space size="small">
+          <Tooltip title="Ver detalhes do aluno">
+            <Button
+              type="text"
+              size="small"
+              icon={<EyeOutlined />}
+              style={{ 
+                color: '#7289da',
+                border: '1px solid #7289da30',
+                backgroundColor: '#7289da10'
+              }}
+              onClick={() => {
+                // Implementar visualização de detalhes
+                console.log('Ver detalhes do aluno:', record.name);
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Editar informações">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              style={{ 
+                color: '#52c41a',
+                border: '1px solid #52c41a30',
+                backgroundColor: '#52c41a10'
+              }}
+              onClick={() => {
+                // Implementar edição
+                console.log('Editar aluno:', record.name);
+              }}
+            />
+          </Tooltip>
+        </Space>
       )
-    },
-    {
-       title: 'Check-ins',
-       dataIndex: 'totalCheckIns',
-       key: 'totalCheckIns',
-       width: 100,
-       render: (total: number, record: StudentStats) => (
-         <div style={{ textAlign: 'center' }}>
-           <div style={{ color: '#ffffff', fontWeight: '600', fontSize: '14px' }}>
-             {total}
-           </div>
-           <div style={{ 
-             fontSize: '11px', 
-             color: '#52c41a',
-             marginTop: '2px'
-           }}>
-             {record.approvedCheckIns} aprovados
-           </div>
-         </div>
-       )
-    },
-    {
-      title: 'Faixa',
-      dataIndex: 'belt',
-      key: 'belt',
-      render: (belt: string) => <Tag color="blue">{belt}</Tag>
-    },
-    {
-      title: 'Check-ins',
-      dataIndex: 'totalCheckIns',
-      key: 'totalCheckIns'
-    },
-    {
-      title: 'Aprovados',
-      dataIndex: 'approvedCheckIns',
-      key: 'approvedCheckIns'
-    },
-    {
-      title: 'Frequência',
-      dataIndex: 'attendanceRate',
-      key: 'attendanceRate',
-      render: (rate: number) => `${rate.toFixed(1)}%`
     }
   ]
 
@@ -930,8 +975,13 @@ export default function ProfessorDashboard() {
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-discord-darker to-gray-800 p-4 md:p-6">
+    <DashboardLayout user={user}>
+      <div>
       {currentView === ProfessorView.MENU && renderMainMenu()}
       
       {currentView === ProfessorView.CHECKINS && (
@@ -1160,67 +1210,364 @@ export default function ProfessorDashboard() {
               >
                 {/* Filtros e Busca */}
                 <div style={{ 
-                  marginBottom: '20px', 
-                  display: 'flex', 
-                  gap: '12px', 
-                  flexWrap: 'wrap',
-                  alignItems: 'center'
+                  marginBottom: '24px',
+                  padding: '16px',
+                  background: '#40444b',
+                  borderRadius: '8px',
+                  border: '1px solid #5c6370'
                 }}>
-                  <Input
-                    placeholder="Buscar por nome..."
-                    prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                      width: '250px',
-                      background: '#40444b',
-                      border: '1px solid #5c6370',
-                      color: '#ffffff'
-                    }}
-                    className="search-input"
-                  />
-                  <Select
-                    placeholder="Filtrar por faixa"
-                    value={filterBelt}
-                    onChange={setFilterBelt}
-                    style={{ 
-                      width: '180px',
-                      background: '#40444b'
-                    }}
-                    className="filter-select"
-                    suffixIcon={<FilterOutlined style={{ color: '#b9bbbe' }} />}
-                  >
-                    <Option value="">Todas as faixas</Option>
-                    <Option value="Branca">Branca</Option>
-                    <Option value="Azul">Azul</Option>
-                    <Option value="Roxa">Roxa</Option>
-                    <Option value="Marrom">Marrom</Option>
-                    <Option value="Preta">Preta</Option>
-                  </Select>
-                  <div style={{ 
-                    color: '#b9bbbe', 
-                    fontSize: '14px',
-                    marginLeft: 'auto'
-                  }}>
-                    {filteredStudents.length} aluno{filteredStudents.length !== 1 ? 's' : ''} encontrado{filteredStudents.length !== 1 ? 's' : ''}
+                  {/* Mobile Layout */}
+                  <div className="md:hidden space-y-4">
+                    {/* Search Input - Full width on mobile */}
+                    <Input
+                      placeholder="Buscar aluno por nome..."
+                      prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: '#36393f',
+                        border: '1px solid #5c6370',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        height: '44px'
+                      }}
+                      className="search-input"
+                    />
+                    
+                    {/* Filter and Counter Row */}
+                    <div className="flex items-center gap-3">
+                      <Select
+                        placeholder="Faixa"
+                        value={filterBelt}
+                        onChange={setFilterBelt}
+                        style={{ 
+                          flex: 1,
+                          background: '#36393f'
+                        }}
+                        className="filter-select"
+                        suffixIcon={<FilterOutlined style={{ color: '#b9bbbe' }} />}
+                        size="large"
+                      >
+                        <Option value="">Todas</Option>
+                        <Option value="Branca">🤍 Branca</Option>
+                        <Option value="Azul">🔵 Azul</Option>
+                        <Option value="Roxa">🟣 Roxa</Option>
+                        <Option value="Marrom">🤎 Marrom</Option>
+                        <Option value="Preta">⚫ Preta</Option>
+                      </Select>
+                      
+                      {(searchTerm || filterBelt) && (
+                        <Button
+                          type="text"
+                          icon={<CloseOutlined />}
+                          onClick={() => {
+                            setSearchTerm('')
+                            setFilterBelt('')
+                          }}
+                          style={{ 
+                            color: '#f04747',
+                            border: '1px solid #f04747',
+                            borderRadius: '8px',
+                            height: '40px',
+                            width: '40px',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Counter */}
+                    <div style={{ 
+                      color: '#b9bbbe', 
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '8px',
+                      background: '#36393f',
+                      borderRadius: '6px'
+                    }}>
+                      <TeamOutlined style={{ color: '#7289da' }} />
+                      <span>
+                        {filteredStudents.length} aluno{filteredStudents.length !== 1 ? 's' : ''} 
+                        {searchTerm || filterBelt ? ' encontrado' + (filteredStudents.length !== 1 ? 's' : '') : ''}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout */}
+                  <div className="hidden md:flex items-center justify-between gap-4">
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <Input
+                        placeholder="Buscar aluno por nome..."
+                        prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                          width: '280px',
+                          background: '#36393f',
+                          border: '1px solid #5c6370',
+                          color: '#ffffff',
+                          borderRadius: '6px'
+                        }}
+                        className="search-input"
+                      />
+                      <Select
+                        placeholder="Filtrar por faixa"
+                        value={filterBelt}
+                        onChange={setFilterBelt}
+                        style={{ 
+                          width: '160px',
+                          background: '#36393f'
+                        }}
+                        className="filter-select"
+                        suffixIcon={<FilterOutlined style={{ color: '#b9bbbe' }} />}
+                      >
+                        <Option value="">Todas as faixas</Option>
+                        <Option value="Branca">🤍 Branca</Option>
+                        <Option value="Azul">🔵 Azul</Option>
+                        <Option value="Roxa">🟣 Roxa</Option>
+                        <Option value="Marrom">🤎 Marrom</Option>
+                        <Option value="Preta">⚫ Preta</Option>
+                      </Select>
+                    </div>
+                    
+                    <div style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px'
+                    }}>
+                      <div style={{ 
+                        color: '#b9bbbe', 
+                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        <TeamOutlined style={{ color: '#7289da' }} />
+                        <span>
+                          {filteredStudents.length} aluno{filteredStudents.length !== 1 ? 's' : ''} 
+                          {searchTerm || filterBelt ? ' encontrado' + (filteredStudents.length !== 1 ? 's' : '') : ''}
+                        </span>
+                      </div>
+                      
+                      {(searchTerm || filterBelt) && (
+                        <Button
+                          type="text"
+                          size="small"
+                          onClick={() => {
+                            setSearchTerm('');
+                            setFilterBelt('');
+                          }}
+                          style={{
+                            color: '#ff7a45',
+                            fontSize: '12px',
+                            padding: '4px 8px',
+                            height: 'auto'
+                          }}
+                        >
+                          Limpar filtros
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <Table
-                  columns={studentColumns}
-                  dataSource={filteredStudents}
-                  rowKey="id"
-                  pagination={{ 
-                    pageSize: 10,
-                    showSizeChanger: false,
-                    showQuickJumper: true,
-                    showTotal: (total, range) => 
-                      `${range[0]}-${range[1]} de ${total} alunos`
-                  }}
-                  scroll={{ x: 800 }}
-                  style={{ background: 'transparent' }}
-                  className="custom-table"
-                />
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table
+                    columns={studentColumns}
+                    dataSource={filteredStudents}
+                    rowKey="id"
+                    pagination={{ 
+                      pageSize: 8,
+                      showSizeChanger: true,
+                      showQuickJumper: true,
+                      pageSizeOptions: ['8', '16', '24'],
+                      showTotal: (total, range) => (
+                        <span style={{ color: '#b9bbbe', fontSize: '13px' }}>
+                          Exibindo {range[0]}-{range[1]} de {total} alunos
+                        </span>
+                      ),
+                      style: { marginTop: '16px' }
+                    }}
+                    scroll={{ x: 720 }}
+                    style={{ background: 'transparent' }}
+                    className="custom-table"
+                    size="middle"
+                    rowClassName={(record, index) => 
+                      index % 2 === 0 ? 'table-row-even' : 'table-row-odd'
+                    }
+                  />
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                  {filteredStudents.map((student) => (
+                    <Card
+                      key={student.id}
+                      style={{ 
+                        background: '#36393f', 
+                        border: '1px solid #5c6370',
+                        borderRadius: '12px'
+                      }}
+                      bodyStyle={{ padding: '16px' }}
+                    >
+                      {/* Header com nome e faixa */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: student.belt === 'Branca' ? '#ffffff' :
+                                         student.belt === 'Azul' ? '#1890ff' :
+                                         student.belt === 'Roxa' ? '#722ed1' :
+                                         student.belt === 'Marrom' ? '#8b4513' :
+                                         student.belt === 'Preta' ? '#000000' : '#d9d9d9',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: student.belt === 'Branca' ? '2px solid #d9d9d9' : 'none',
+                              flexShrink: 0
+                            }}
+                          >
+                            <span style={{ 
+                              color: student.belt === 'Branca' ? '#000000' : '#ffffff',
+                              fontSize: '12px',
+                              fontWeight: 'bold'
+                            }}>
+                              🥋
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <Text strong style={{ color: '#ffffff', fontSize: '16px', display: 'block' }}>
+                              {student.name}
+                            </Text>
+                            <Text style={{ color: '#b9bbbe', fontSize: '13px', display: 'block' }}>
+                              {student.email}
+                            </Text>
+                          </div>
+                        </div>
+                        <Tag 
+                          color={student.belt === 'Branca' ? 'default' :
+                                 student.belt === 'Azul' ? 'blue' :
+                                 student.belt === 'Roxa' ? 'purple' :
+                                 student.belt === 'Marrom' ? 'orange' :
+                                 student.belt === 'Preta' ? 'black' : 'default'}
+                          style={{ margin: 0, fontSize: '12px' }}
+                        >
+                          {student.belt}
+                        </Tag>
+                      </div>
+
+                      {/* Estatísticas em grid */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="text-center p-2 bg-gray-700 rounded-lg">
+                          <Text style={{ color: '#b9bbbe', fontSize: '11px', display: 'block' }}>
+                            Check-ins
+                          </Text>
+                          <Text strong style={{ color: '#ffffff', fontSize: '16px' }}>
+                            {student.totalCheckIns}
+                          </Text>
+                        </div>
+                        <div className="text-center p-2 bg-gray-700 rounded-lg">
+                          <Text style={{ color: '#b9bbbe', fontSize: '11px', display: 'block' }}>
+                            Aprovados
+                          </Text>
+                          <Text strong style={{ color: '#43b581', fontSize: '16px' }}>
+                            {student.approvedCheckIns}
+                          </Text>
+                        </div>
+                      </div>
+
+                      {/* Taxa de frequência */}
+                      <div className="mb-4">
+                        <div className="flex justify-between items-center mb-1">
+                          <Text style={{ color: '#b9bbbe', fontSize: '12px' }}>
+                            Taxa de Frequência
+                          </Text>
+                          <Text strong style={{ 
+                            color: student.attendanceRate >= 80 ? '#43b581' : 
+                                   student.attendanceRate >= 60 ? '#faa61a' : '#f04747',
+                            fontSize: '14px'
+                          }}>
+                            {student.attendanceRate.toFixed(1)}%
+                          </Text>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          backgroundColor: '#40444b',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${student.attendanceRate}%`,
+                            height: '100%',
+                            backgroundColor: student.attendanceRate >= 80 ? '#43b581' : 
+                                           student.attendanceRate >= 60 ? '#faa61a' : '#f04747',
+                            borderRadius: '3px',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+
+                      {/* Botão de ação */}
+                      <Button
+                        type="primary"
+                        icon={<EyeOutlined />}
+                        onClick={() => {
+                          Modal.info({
+                            title: `Detalhes de ${student.name}`,
+                            content: (
+                              <div style={{ color: '#ffffff' }}>
+                                <p><strong>Email:</strong> {student.email}</p>
+                                <p><strong>Faixa:</strong> {student.belt}</p>
+                                <p><strong>Total de Check-ins:</strong> {student.totalCheckIns}</p>
+                                <p><strong>Check-ins Aprovados:</strong> {student.approvedCheckIns}</p>
+                                <p><strong>Taxa de Frequência:</strong> {student.attendanceRate.toFixed(1)}%</p>
+                              </div>
+                            ),
+                            okText: 'Fechar',
+                            okButtonProps: { style: { background: '#7289da', borderColor: '#7289da' } }
+                          })
+                        }}
+                        style={{ 
+                          width: '100%',
+                          background: '#7289da',
+                          borderColor: '#7289da',
+                          height: '40px',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Ver Detalhes
+                      </Button>
+                    </Card>
+                  ))}
+
+                  {/* Mobile Pagination */}
+                  {filteredStudents.length > 6 && (
+                    <div className="text-center mt-6 p-4 bg-gray-800 rounded-lg">
+                      <Text style={{ color: '#b9bbbe', fontSize: '14px', display: 'block', marginBottom: '8px' }}>
+                        Mostrando {Math.min(6, filteredStudents.length)} de {filteredStudents.length} alunos
+                      </Text>
+                      <Button 
+                        type="primary" 
+                        style={{ background: '#7289da', borderColor: '#7289da' }}
+                        size="small"
+                      >
+                        Carregar Mais
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </Card>
             </Col>
           </Row>
@@ -1265,44 +1612,152 @@ export default function ProfessorDashboard() {
           {renderHeader('Dashboard e Estatísticas')}
 
         {/* Estatísticas */}
-        <Row gutter={[16, 16]} className="mb-6 md:mb-8">
-          <Col xs={12} sm={6} md={6}>
-            <Card style={{ background: '#36393f', border: '1px solid #5c6370' }} bodyStyle={{ padding: '16px 12px' }}>
+        <Row gutter={[12, 12]} className="mb-6 md:mb-8">
+          <Col xs={24} sm={12} md={6}>
+            <Card 
+              style={{ 
+                background: '#36393f', 
+                border: '1px solid #5c6370',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }} 
+              bodyStyle={{ 
+                padding: window.innerWidth < 768 ? '20px 16px' : '16px 12px',
+                textAlign: 'center'
+              }}
+            >
               <Statistic
-                title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Total Alunos</span>}
+                title={
+                  <span style={{ 
+                    color: '#b9bbbe', 
+                    fontSize: window.innerWidth < 768 ? '14px' : '12px',
+                    fontWeight: '500'
+                  }}>
+                    Total de Alunos
+                  </span>
+                }
                 value={stats.totalStudents}
-                prefix={<TeamOutlined style={{ color: '#7289da', fontSize: '16px' }} />}
-                valueStyle={{ color: '#ffffff', fontSize: '20px' }}
+                prefix={<TeamOutlined style={{ 
+                  color: '#7289da', 
+                  fontSize: window.innerWidth < 768 ? '20px' : '16px',
+                  marginRight: '8px'
+                }} />}
+                valueStyle={{ 
+                  color: '#ffffff', 
+                  fontSize: window.innerWidth < 768 ? '28px' : '20px',
+                  fontWeight: 'bold'
+                }}
               />
             </Card>
           </Col>
-          <Col xs={12} sm={6} md={6}>
-            <Card style={{ background: '#36393f', border: '1px solid #5c6370' }} bodyStyle={{ padding: '16px 12px' }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card 
+              style={{ 
+                background: '#36393f', 
+                border: '1px solid #5c6370',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }} 
+              bodyStyle={{ 
+                padding: window.innerWidth < 768 ? '20px 16px' : '16px 12px',
+                textAlign: 'center'
+              }}
+            >
               <Statistic
-                title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Ativos</span>}
+                title={
+                  <span style={{ 
+                    color: '#b9bbbe', 
+                    fontSize: window.innerWidth < 768 ? '14px' : '12px',
+                    fontWeight: '500'
+                  }}>
+                    Alunos Ativos
+                  </span>
+                }
                 value={stats.activeStudents}
-                prefix={<UserOutlined style={{ color: '#43b581', fontSize: '16px' }} />}
-                valueStyle={{ color: '#43b581', fontSize: '20px' }}
+                prefix={<UserOutlined style={{ 
+                  color: '#43b581', 
+                  fontSize: window.innerWidth < 768 ? '20px' : '16px',
+                  marginRight: '8px'
+                }} />}
+                valueStyle={{ 
+                  color: '#43b581', 
+                  fontSize: window.innerWidth < 768 ? '28px' : '20px',
+                  fontWeight: 'bold'
+                }}
               />
             </Card>
           </Col>
-          <Col xs={12} sm={6} md={6}>
-            <Card style={{ background: '#36393f', border: '1px solid #5c6370' }} bodyStyle={{ padding: '16px 12px' }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card 
+              style={{ 
+                background: '#36393f', 
+                border: '1px solid #5c6370',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }} 
+              bodyStyle={{ 
+                padding: window.innerWidth < 768 ? '20px 16px' : '16px 12px',
+                textAlign: 'center'
+              }}
+            >
               <Statistic
-                title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Pendentes</span>}
+                title={
+                  <span style={{ 
+                    color: '#b9bbbe', 
+                    fontSize: window.innerWidth < 768 ? '14px' : '12px',
+                    fontWeight: '500'
+                  }}>
+                    Check-ins Pendentes
+                  </span>
+                }
                 value={stats.pendingApprovals}
-                prefix={<ClockCircleOutlined style={{ color: '#faa61a', fontSize: '16px' }} />}
-                valueStyle={{ color: '#faa61a', fontSize: '20px' }}
+                prefix={<ClockCircleOutlined style={{ 
+                  color: '#faa61a', 
+                  fontSize: window.innerWidth < 768 ? '20px' : '16px',
+                  marginRight: '8px'
+                }} />}
+                valueStyle={{ 
+                  color: '#faa61a', 
+                  fontSize: window.innerWidth < 768 ? '28px' : '20px',
+                  fontWeight: 'bold'
+                }}
               />
             </Card>
           </Col>
-          <Col xs={12} sm={6} md={6}>
-            <Card style={{ background: '#36393f', border: '1px solid #5c6370' }} bodyStyle={{ padding: '16px 12px' }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card 
+              style={{ 
+                background: '#36393f', 
+                border: '1px solid #5c6370',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }} 
+              bodyStyle={{ 
+                padding: window.innerWidth < 768 ? '20px 16px' : '16px 12px',
+                textAlign: 'center'
+              }}
+            >
               <Statistic
-                title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Hoje</span>}
+                title={
+                  <span style={{ 
+                    color: '#b9bbbe', 
+                    fontSize: window.innerWidth < 768 ? '14px' : '12px',
+                    fontWeight: '500'
+                  }}>
+                    Check-ins Hoje
+                  </span>
+                }
                 value={stats.todayCheckIns}
-                prefix={<CalendarOutlined style={{ color: '#43b581', fontSize: '16px' }} />}
-                valueStyle={{ color: '#43b581', fontSize: '20px' }}
+                prefix={<CalendarOutlined style={{ 
+                  color: '#43b581', 
+                  fontSize: window.innerWidth < 768 ? '20px' : '16px',
+                  marginRight: '8px'
+                }} />}
+                valueStyle={{ 
+                  color: '#43b581', 
+                  fontSize: window.innerWidth < 768 ? '28px' : '20px',
+                  fontWeight: 'bold'
+                }}
               />
             </Card>
           </Col>
@@ -1325,7 +1780,7 @@ export default function ProfessorDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#5c6370" />
                   <XAxis dataKey="day" stroke="#b9bbbe" />
                   <YAxis stroke="#b9bbbe" />
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: '#2f3136', 
                       border: '1px solid #5c6370',
@@ -1362,7 +1817,7 @@ export default function ProfessorDashboard() {
                       <Cell key={`cell-${index}`} fill={entry.color} stroke="#36393f" strokeWidth={2} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: '#2f3136', 
                       border: '1px solid #5c6370',
@@ -1392,7 +1847,7 @@ export default function ProfessorDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#5c6370" />
                   <XAxis dataKey="month" stroke="#b9bbbe" />
                   <YAxis stroke="#b9bbbe" />
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: '#2f3136', 
                       border: '1px solid #5c6370',
@@ -1644,6 +2099,7 @@ export default function ProfessorDashboard() {
           }
         }
       `}</style>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }

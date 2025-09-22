@@ -51,7 +51,7 @@ export async function PUT(
 
     // Retornar check-in atualizado
     const updatedCheckIn = await executeQuery(
-      `SELECT c.*, u.name as user_name, u.belt_level as belt, u.degree 
+      `SELECT c.*, u.name as user_name, u.belt, u.degree 
        FROM checkins c 
        JOIN users u ON c.user_id = u.id 
        WHERE c.id = ?`,

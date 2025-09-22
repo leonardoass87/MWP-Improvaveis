@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     const users = await executeQuery(
-      'SELECT id, name, email, role, belt_level as belt, degree, active, created_at, updated_at FROM users ORDER BY name'
+      'SELECT id, name, email, role, belt, degree, active, created_at, updated_at FROM users ORDER BY name'
     ) as User[]
 
     return NextResponse.json(users)
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // Inserir usuário
     const result = await executeQuery(
-      'INSERT INTO users (name, email, password, role, belt_level, degree) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (name, email, password, role, belt, degree) VALUES (?, ?, ?, ?, ?, ?)',
       [name, email, hashedPassword, role, belt || null, degree || 0]
     ) as any
 

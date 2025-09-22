@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Form, Select, Input } from 'antd'
 import { UserOutlined, TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
 
@@ -72,7 +73,7 @@ export default function AdminDashboard() {
           name: user.name,
           email: user.email,
           role: user.role,
-          belt: user.belt_level || 'white',
+          belt: user.belt || 'white',
           degree: user.degree || 0,
           active: user.active !== false,
           createdAt: user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'N/A'
@@ -285,54 +286,60 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div className="min-h-screen flex items-center justify-center bg-discord-darker">
         <Spin size="large" />
       </div>
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-      <Title level={2}>Dashboard do Administrador</Title>
-      <Text type="secondary">Bem-vindo, {user?.name}!</Text>
+    <DashboardLayout user={user}>
+      <div>
+        <Title level={2} className="text-white">Dashboard do Administrador</Title>
+        <Text className="text-gray-400">Bem-vindo, {user?.name}!</Text>
 
       {/* Estatísticas */}
       <Row gutter={16} style={{ marginTop: '24px' }}>
         <Col span={6}>
-          <Card>
+          <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title="Total de Usuários"
+              title={<span className="text-gray-300">Total de Usuários</span>}
               value={stats.totalUsers}
-              prefix={<UserOutlined />}
+              prefix={<UserOutlined className="text-blue-400" />}
+              valueStyle={{ color: '#ffffff' }}
             />
           </Card>
         </Col>
         <Col span={6}>
-          <Card>
+          <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title="Usuários Ativos"
+              title={<span className="text-gray-300">Usuários Ativos</span>}
               value={stats.activeUsers}
-              prefix={<CheckCircleOutlined />}
+              prefix={<CheckCircleOutlined className="text-green-400" />}
               valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
         <Col span={6}>
-          <Card>
+          <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title="Alunos"
+              title={<span className="text-gray-300">Alunos</span>}
               value={stats.students}
-              prefix={<TeamOutlined />}
+              prefix={<TeamOutlined className="text-blue-400" />}
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
         <Col span={6}>
-          <Card>
+          <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title="Professores"
+              title={<span className="text-gray-300">Professores</span>}
               value={stats.instructors}
-              prefix={<UserOutlined />}
+              prefix={<UserOutlined className="text-purple-400" />}
               valueStyle={{ color: '#722ed1' }}
             />
           </Card>
@@ -341,7 +348,8 @@ export default function AdminDashboard() {
 
       {/* Gestão de Usuários */}
       <Card 
-        title="Gestão de Usuários" 
+        title={<span className="text-white">Gestão de Usuários</span>}
+        className="bg-discord-dark border-gray-700"
         style={{ marginTop: '24px' }}
         extra={
           <Button 
@@ -446,6 +454,7 @@ export default function AdminDashboard() {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }

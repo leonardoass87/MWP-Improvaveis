@@ -50,6 +50,15 @@ export interface AuthUser {
   belt?: BeltColor
   degree?: number
   active: boolean
+  phone?: string
+  address?: string
+  emergencyContact?: string
+  emergencyPhone?: string
+  birthDate?: string
+  weight?: string
+  height?: string
+  medicalInfo?: string
+  goals?: string
 }
 
 export interface CreateUserData {

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Buscar usuário por email no banco de dados
     const users = await executeQuery(
-      'SELECT id, name, email, password, role, belt_level as belt, degree, active FROM users WHERE email = ?',
+      'SELECT id, name, email, password, role, belt, degree, active, phone, address, emergency_contact, emergency_phone, birth_date, weight, height, medical_info, goals FROM users WHERE email = ?',
       [email]
     ) as any[]
 
@@ -63,6 +63,15 @@ export async function POST(request: NextRequest) {
       belt: user.belt,
       degree: user.degree,
       active: user.active,
+      phone: user.phone,
+      address: user.address,
+      emergencyContact: user.emergency_contact,
+      emergencyPhone: user.emergency_phone,
+      birthDate: user.birth_date,
+      weight: user.weight,
+      height: user.height,
+      medicalInfo: user.medical_info,
+      goals: user.goals,
     }
 
     const token = generateToken(authUser)

@@ -14,7 +14,7 @@ async function listUsers() {
 
     // Listar todos os usuários
     const [users] = await connection.execute(
-      'SELECT id, name, email, role, belt_level, degree, active FROM users ORDER BY id'
+      'SELECT id, name, email, role, belt, degree, active FROM users ORDER BY id'
     )
 
     console.log('\nUsuários no banco de dados:')
@@ -24,7 +24,7 @@ async function listUsers() {
       console.log(`Nome: ${user.name}`)
       console.log(`Email: ${user.email}`)
       console.log(`Role: ${user.role}`)
-      console.log(`Faixa: ${user.belt_level}`)
+      console.log(`Faixa: ${user.belt}`)
       console.log(`Grau: ${user.degree}`)
       console.log(`Ativo: ${user.active ? 'Sim' : 'Não'}`)
       console.log('--------------------------------')

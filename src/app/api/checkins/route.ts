@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
 
     let query = `
-      SELECT c.*, u.name as user_name, u.belt_level as belt, u.degree 
+      SELECT c.*, u.name as user_name, u.belt, u.degree 
       FROM checkins c 
       JOIN users u ON c.user_id = u.id 
       WHERE 1=1

@@ -56,10 +56,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
     }
 
-    // Mapear 'belt' para 'belt_level' no banco de dados
+    // Construir cláusula SET
     const setClause = updateFields.map(field => {
-      const dbField = field === 'belt' ? 'belt_level' : field
-      return `${dbField} = ?`
+      return `${field} = ?`
     }).join(', ')
     const values = updateFields.map(field => updateData[field as keyof UpdateUserData])
     values.push(userId)
@@ -71,7 +70,7 @@ export async function PUT(
 
     // Retornar usuário atualizado
     const updatedUser = await executeQuery(
-      'SELECT id, name, email, role, belt_level as belt, degree, active, created_at, updated_at FROM users WHERE id = ?',
+      'SELECT id, name, email, role, belt, degree, active, created_at, updated_at FROM users WHERE id = ?',
       [userId]
     ) as any[]
 

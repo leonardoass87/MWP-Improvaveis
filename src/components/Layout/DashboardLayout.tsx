@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu, Avatar, Dropdown, Button, Typography, Badge, Divider } from 'antd'
+import { Layout, Menu, Avatar, Dropdown, Button, Typography } from 'antd'
 import {
   UserOutlined,
   DashboardOutlined,
@@ -13,11 +13,13 @@ import {
   MenuUnfoldOutlined,
   CrownOutlined,
   StarOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthUser } from '@/types'
+import ProfileModal from '@/components/Profile/ProfileModal'
 
-const { Header, Sider, Content } = Layout
+const { Sider, Content } = Layout
 const { Text } = Typography
 
 interface DashboardLayoutProps {
@@ -28,6 +30,8 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [profileModalVisible, setProfileModalVisible] = useState(false)
+  const [currentUser, setCurrentUser] = useState<AuthUser>(user)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -48,6 +52,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     router.push('/login')
+  }
+
+  const handleUpdateUser = (updatedUser: AuthUser) => {
+    setCurrentUser(updatedUser)
+  }
+
+  const handleOpenProfile = () => {
+    setProfileModalVisible(true)
   }
 
   const getMenuItems = () => {
@@ -72,30 +84,20 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           label: 'Check-ins',
         }
       )
-    } else if (user.role === 'instructor') {
+    } else if (user.role === 'professor') {
       baseItems.push(
         {
-          key: '/dashboard/professor/students',
+          key: '/dashboard/professor',
           icon: <TeamOutlined />,
-          label: 'Alunos',
-        },
-        {
-          key: '/dashboard/professor/checkins',
-          icon: <CheckCircleOutlined />,
-          label: 'Check-ins',
+          label: 'Gerenciar Alunos',
         }
       )
     } else if (user.role === 'student') {
       baseItems.push(
         {
-          key: '/dashboard/aluno/checkin',
-          icon: <CheckCircleOutlined />,
-          label: 'Check-in',
-        },
-        {
-          key: '/dashboard/aluno/students',
+          key: '/dashboard/student/ranking',
           icon: <TeamOutlined />,
-          label: 'Alunos',
+          label: 'Ranking',
         }
       )
     }
@@ -106,8 +108,9 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
   const userMenuItems = [
     {
       key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Perfil',
+      icon: <EditOutlined />,
+      label: 'Editar Perfil',
+      onClick: handleOpenProfile,
     },
     {
       key: 'settings',
@@ -160,6 +163,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
 
   return (
     <Layout className="min-h-screen">
+      {/* Overlay para mobile quando sidebar está aberta */}
+      {isMobile && !collapsed && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[999]"
+          onClick={() => setCollapsed(true)}
+        />
+      )}
+      
       <Sider
         trigger={null}
         collapsible
@@ -175,6 +186,8 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           zIndex: 1000,
           background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
           boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)',
+          transform: isMobile && collapsed ? 'translateX(-100%)' : 'translateX(0)',
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
         {/* Header da Sidebar */}
@@ -199,37 +212,44 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
         {/* Perfil do Usuário na Sidebar */}
         {!collapsed && (
           <div className="p-4 border-b border-gray-600/30 bg-black/10">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar
-                  size={48}
-                  icon={<UserOutlined />}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 border-2 border-white/20"
-                />
-                <div className="absolute -bottom-1 -right-1">
-                  {getRoleIcon(user.role)}
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-sm truncate">
-                  {user.name}
-                </div>
-                <div className={`text-xs font-medium capitalize ${getRoleColor(user.role)}`}>
-                  {user.role}
-                </div>
-                {user.belt && (
-                  <div className="flex items-center mt-1">
-                    <span 
-                      className="inline-block w-2 h-2 rounded-full mr-1 border border-white/30"
-                      style={{ backgroundColor: getBeltColor(user.belt) }}
-                    />
-                    <span className="text-xs text-gray-300 capitalize">
-                      {user.belt} {user.degree}º grau
-                    </span>
+            <Dropdown
+              menu={{ items: userMenuItems }}
+              placement="bottomRight"
+              trigger={['click']}
+            >
+              <div className="flex items-center space-x-3 cursor-pointer hover:bg-white/5 rounded-lg p-2 -m-2 transition-all duration-200">
+                <div className="relative">
+                  <Avatar
+                    size={48}
+                    icon={<UserOutlined />}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 border-2 border-white/20"
+                  />
+                  <div className="absolute -bottom-1 -right-1">
+                    {getRoleIcon(currentUser.role)}
                   </div>
-                )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white font-semibold text-sm truncate">
+                    {currentUser.name}
+                  </div>
+                  <div className={`text-xs font-medium capitalize ${getRoleColor(currentUser.role)}`}>
+                    {currentUser.role}
+                  </div>
+                  {currentUser.belt && (
+                    <div className="flex items-center mt-1">
+                      <span 
+                        className="inline-block w-2 h-2 rounded-full mr-1 border border-white/30"
+                        style={{ backgroundColor: getBeltColor(currentUser.belt) }}
+                      />
+                      <span className="text-xs text-gray-300 capitalize">
+                        {currentUser.belt} {currentUser.degree}º grau
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <SettingOutlined className="text-gray-300 text-sm flex-shrink-0" />
               </div>
-            </div>
+            </Dropdown>
           </div>
         )}
         
@@ -263,70 +283,28 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
         )}
       </Sider>
 
-      <Layout className={`${isMobile && !collapsed ? 'ml-0' : ''}`}>
-        <Header 
-          className="px-6 flex items-center justify-between shadow-lg"
-          style={{
-            background: 'linear-gradient(90deg, #1a1a2e 0%, #16213e 100%)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            height: '70px',
-          }}
-        >
-          <div className="flex items-center space-x-4">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className="text-white hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200"
-              size="large"
-            />
-            
-            {/* Breadcrumb ou título da página atual */}
-            <div className="hidden md:block">
-              <Text className="text-white text-lg font-semibold">
-                {pathname.includes('admin') ? 'Painel Administrativo' : 
-                 pathname.includes('professor') ? 'Painel do Professor' : 
-                 pathname.includes('aluno') ? 'Painel do Aluno' : 'Dashboard'}
-              </Text>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Indicadores de status ou notificações */}
-            <div className="hidden lg:flex items-center space-x-3">
-              <Badge count={0} showZero={false}>
-                <Button
-                  type="text"
-                  icon={<CheckCircleOutlined />}
-                  className="text-gray-300 hover:text-white hover:bg-white/10"
-                />
-              </Badge>
-            </div>
-            
-            {/* Menu do usuário simplificado */}
-            <Dropdown
-              menu={{ items: userMenuItems }}
-              placement="bottomRight"
-              trigger={['click']}
-            >
-              <Button
-                type="text"
-                icon={<SettingOutlined />}
-                className="text-gray-300 hover:text-white hover:bg-white/10 border border-white/20 hover:border-white/40"
-                size="large"
-              />
-            </Dropdown>
-          </div>
-        </Header>
-
+      <Layout>
         <Content 
           className="overflow-auto"
           style={{
             background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-            minHeight: 'calc(100vh - 70px)',
-            padding: '24px',
+            minHeight: '100vh',
+            padding: isMobile ? '16px' : '24px',
           }}
         >
+          {/* Botão de toggle do sidebar para mobile */}
+          {isMobile && (
+            <div className="mb-4">
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                className="text-white hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200"
+                size="large"
+              />
+            </div>
+          )}
+          
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
@@ -340,6 +318,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           onClick={() => setCollapsed(true)}
         />
       )}
+
+      {/* Profile Modal */}
+      <ProfileModal
+        visible={profileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
+        user={currentUser}
+        onUpdate={handleUpdateUser}
+      />
     </Layout>
   )
 }

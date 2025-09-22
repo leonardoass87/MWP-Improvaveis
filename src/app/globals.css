@@ -318,3 +318,74 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--discord-gray);
 }
+
+/* Estilos personalizados para tabela de alunos */
+.custom-table .ant-table-tbody > tr.table-row-even {
+  background-color: #36393f !important;
+}
+
+.custom-table .ant-table-tbody > tr.table-row-odd {
+  background-color: #40444b !important;
+}
+
+.custom-table .ant-table-tbody > tr:hover {
+  background-color: #4f545c !important;
+}
+
+.custom-table .ant-table-thead > tr > th {
+  background-color: #2c2f33 !important;
+  border-bottom: 2px solid #5c6370 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  padding: 16px 12px !important;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #5c637020 !important;
+  padding: 12px !important;
+  vertical-align: middle !important;
+}
+
+.custom-table .ant-pagination {
+  margin-top: 20px !important;
+}
+
+.custom-table .ant-pagination .ant-pagination-item {
+  background-color: #40444b !important;
+  border: 1px solid #5c6370 !important;
+}
+
+.custom-table .ant-pagination .ant-pagination-item a {
+  color: #ffffff !important;
+}
+
+.custom-table .ant-pagination .ant-pagination-item-active {
+  background-color: #7289da !important;
+  border-color: #7289da !important;
+}
+
+.custom-table .ant-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+.search-input .ant-input {
+  background-color: #36393f !important;
+  border: 1px solid #5c6370 !important;
+  color: #ffffff !important;
+}
+
+.search-input .ant-input:focus {
+  border-color: #7289da !important;
+  box-shadow: 0 0 0 2px rgba(114, 137, 218, 0.2) !important;
+}
+
+.filter-select .ant-select-selector {
+  background-color: #36393f !important;
+  border: 1px solid #5c6370 !important;
+  color: #ffffff !important;
+}
+
+.filter-select .ant-select-selector:focus {
+  border-color: #7289da !important;
+  box-shadow: 0 0 0 2px rgba(114, 137, 218, 0.2) !important;
+}
