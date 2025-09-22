@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { User } from '@/types'
-import { addUser, emailExists, getNextUserId } from '@/lib/users'
+import { prisma } from '@/lib/database'
+import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,29 +22,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se email já existe
-    if (emailExists(email)) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
+
+    if (existingUser) {
       return NextResponse.json(
         { error: 'Este email já está cadastrado' },
         { status: 409 }
       )
     }
 
-    // Criar novo usuário
-    const newUser: User = {
-      id: getNextUserId(),
-      name,
-      email,
-      password, // Em produção seria hash
-      role: 'student', // Novos usuários são sempre estudantes
-      belt: 'branca', // Faixa branca por padrão
-      degree: 0,
-      active: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Adicionar à lista de usuários
-    addUser(newUser)
+    // Criar novo usuário
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: 'student', // Novos usuários são sempre estudantes
+        belt: 'branca', // Faixa branca por padrão
+        degree: 0,
+        active: true,
+      }
+    })
 
     console.log('Novo usuário cadastrado:', {
       id: newUser.id,

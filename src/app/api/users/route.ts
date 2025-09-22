@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/lib/database'
+import { prisma } from '@/lib/database'
 import { hashPassword, getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { User, CreateUserData } from '@/types'
+import { CreateUserData } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,9 +20,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
     }
 
-    const users = await executeQuery(
-      'SELECT id, name, email, role, belt, degree, active, created_at, updated_at FROM users ORDER BY name'
-    ) as User[]
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        belt: true,
+        degree: true,
+        active: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { name: 'asc' }
+    })
 
     return NextResponse.json(users)
   } catch (error) {
@@ -54,12 +65,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se email já existe
-    const existingUsers = await executeQuery(
-      'SELECT id FROM users WHERE email = ?',
-      [email]
-    ) as User[]
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
 
-    if (existingUsers.length > 0) {
+    if (existingUser) {
       return NextResponse.json(
         { error: 'Email já está em uso' },
         { status: 400 }
@@ -70,19 +80,26 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
 
     // Inserir usuário
-    const result = await executeQuery(
-      'INSERT INTO users (name, email, password, role, belt, degree) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, role, belt || null, degree || 0]
-    ) as any
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role,
+        belt: belt || null,
+        degree: degree || 0,
+        active: true
+      }
+    })
 
     return NextResponse.json({
-      id: result.insertId,
-      name,
-      email,
-      role,
-      belt,
-      degree,
-      active: true,
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      belt: newUser.belt,
+      degree: newUser.degree,
+      active: newUser.active,
     })
   } catch (error) {
     console.error('Create user error:', error)

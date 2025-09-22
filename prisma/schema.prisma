@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(student)
+  belt      Belt?
+  degree    Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  checkins Checkin[]
+  posts    Post[]
+
+  @@map("users")
+}
+
+model Checkin {
+  id         Int           @id @default(autoincrement())
+  userId     Int           @map("user_id")
+  date       String
+  status     CheckinStatus @default(pending)
+  approvedBy Int?          @map("approved_by")
+  approvedAt DateTime?     @map("approved_at")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("checkins")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  published Boolean  @default(true)
+  authorId  Int      @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
+enum UserRole {
+  admin
+  instructor
+  student
+
+  @@map("user_role")
+}
+
+enum Belt {
+  branca
+  azul
+  roxa
+  marrom
+  preta
+
+  @@map("belt")
+}
+
+enum CheckinStatus {
+  pending
+  approved
+  rejected
+
+  @@map("checkin_status")
+}

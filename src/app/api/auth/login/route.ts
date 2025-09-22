@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateToken } from '@/lib/auth'
-import { executeQuery } from '@/lib/database'
+import { prisma } from '@/lib/database'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
@@ -15,19 +15,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Buscar usuário por email no banco de dados
-    const users = await executeQuery(
-      'SELECT id, name, email, password, role, belt, degree, active, phone, address, emergency_contact, emergency_phone, birth_date, weight, height, medical_info, goals FROM users WHERE email = ?',
-      [email]
-    ) as any[]
+    const user = await prisma.user.findUnique({
+      where: { email }
+    })
 
-    if (users.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Credenciais inválidas' },
         { status: 401 }
       )
     }
-
-    const user = users[0]
 
     // Verificar se o usuário está ativo
     if (!user.active) {
@@ -63,15 +60,6 @@ export async function POST(request: NextRequest) {
       belt: user.belt,
       degree: user.degree,
       active: user.active,
-      phone: user.phone,
-      address: user.address,
-      emergencyContact: user.emergency_contact,
-      emergencyPhone: user.emergency_phone,
-      birthDate: user.birth_date,
-      weight: user.weight,
-      height: user.height,
-      medicalInfo: user.medical_info,
-      goals: user.goals,
     }
 
     const token = generateToken(authUser)

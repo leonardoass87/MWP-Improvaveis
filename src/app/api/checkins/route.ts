@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/lib/database'
+import { prisma } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { CheckInWithUser } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,53 +19,49 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date')
     const userId = searchParams.get('userId')
 
-    let query = `
-      SELECT c.*, u.name as user_name, u.belt, u.degree 
-      FROM checkins c 
-      JOIN users u ON c.user_id = u.id 
-      WHERE 1=1
-    `
-    const params: any[] = []
+    const whereClause: any = {}
 
     if (status) {
-      query += ' AND c.status = ?'
-      params.push(status)
+      whereClause.status = status
     }
 
     if (date) {
-      query += ' AND c.date = ?'
-      params.push(date)
+      whereClause.date = date
     }
 
     if (userId) {
-      query += ' AND c.user_id = ?'
-      params.push(userId)
+      whereClause.userId = parseInt(userId)
     }
 
     // Se for aluno, só pode ver seus próprios check-ins
     if (authUser.role === 'student') {
-      query += ' AND c.user_id = ?'
-      params.push(authUser.id)
+      whereClause.userId = authUser.id
     }
 
-    query += ' ORDER BY c.created_at DESC'
-
-    const checkIns = await executeQuery(query, params) as any[]
+    const checkIns = await prisma.checkin.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            belt: true,
+            degree: true,
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
 
     const formattedCheckIns = checkIns.map(checkIn => ({
       id: checkIn.id,
-      userId: checkIn.user_id,
+      userId: checkIn.userId,
       date: checkIn.date,
       status: checkIn.status,
-      approvedBy: checkIn.approved_by,
-      approvedAt: checkIn.approved_at,
-      createdAt: checkIn.created_at,
-      user: {
-        id: checkIn.user_id,
-        name: checkIn.user_name,
-        belt: checkIn.belt,
-        degree: checkIn.degree,
-      }
+      approvedBy: checkIn.approvedBy,
+      approvedAt: checkIn.approvedAt,
+      createdAt: checkIn.createdAt,
+      user: checkIn.user
     }))
 
     return NextResponse.json(formattedCheckIns)
@@ -103,29 +98,34 @@ export async function POST(request: NextRequest) {
     const today = new Date().toISOString().split('T')[0]
 
     // Verificar se já fez check-in hoje
-    const existingCheckIn = await executeQuery(
-      'SELECT id FROM checkins WHERE user_id = ? AND date = ?',
-      [authUser.id, today]
-    ) as any[]
+    const existingCheckIn = await prisma.checkin.findFirst({
+      where: {
+        userId: authUser.id,
+        date: today
+      }
+    })
 
-    if (existingCheckIn.length > 0) {
+    if (existingCheckIn) {
       return NextResponse.json({ 
         error: 'Você já fez check-in hoje' 
       }, { status: 400 })
     }
 
     // Criar check-in
-    const result = await executeQuery(
-      'INSERT INTO checkins (user_id, date) VALUES (?, ?)',
-      [authUser.id, today]
-    ) as any
+    const newCheckIn = await prisma.checkin.create({
+      data: {
+        userId: authUser.id,
+        date: today,
+        status: 'pending'
+      }
+    })
 
     return NextResponse.json({
-      id: result.insertId,
-      userId: authUser.id,
-      date: today,
-      status: 'pending',
-      createdAt: new Date(),
+      id: newCheckIn.id,
+      userId: newCheckIn.userId,
+      date: newCheckIn.date,
+      status: newCheckIn.status,
+      createdAt: newCheckIn.createdAt,
     })
   } catch (error) {
     console.error('Create checkin error:', error)

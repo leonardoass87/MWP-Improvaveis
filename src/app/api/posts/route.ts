@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/lib/database'
+import { prisma } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -15,21 +15,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar todos os posts com informações do autor
-    const posts = await executeQuery(`
-      SELECT 
-        p.id,
-        p.title,
-        p.content,
-        p.published,
-        p.created_at,
-        p.updated_at,
-        u.name as author_name,
-        u.email as author_email,
-        u.role as author_role
-      FROM posts p
-      JOIN users u ON p.author_id = u.id
-      ORDER BY p.created_at DESC
-    `) as any[]
+    const posts = await prisma.post.findMany({
+      include: {
+        author: {
+          select: {
+            name: true,
+            email: true,
+            role: true,
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
 
     return NextResponse.json(posts)
   } catch (error) {
@@ -65,29 +62,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar post
-    const result = await executeQuery(
-      'INSERT INTO posts (title, content, author_id, published) VALUES (?, ?, ?, ?)',
-      [title, content, authUser.id, published]
-    ) as any
+    const newPost = await prisma.post.create({
+      data: {
+        title,
+        content,
+        authorId: authUser.id,
+        published
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+            email: true,
+            role: true,
+          }
+        }
+      }
+    })
 
-    // Buscar o post criado com informações do autor
-    const newPost = await executeQuery(`
-      SELECT 
-        p.id,
-        p.title,
-        p.content,
-        p.published,
-        p.created_at,
-        p.updated_at,
-        u.name as author_name,
-        u.email as author_email,
-        u.role as author_role
-      FROM posts p
-      JOIN users u ON p.author_id = u.id
-      WHERE p.id = ?
-    `, [result.insertId]) as any[]
-
-    return NextResponse.json(newPost[0])
+    return NextResponse.json(newPost)
   } catch (error) {
     console.error('Create post error:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

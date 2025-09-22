@@ -1,22 +1,19 @@
-import mysql from 'mysql2/promise'
+import { PrismaClient } from '@prisma/client'
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'bjj_academy',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+// Singleton pattern para Prisma Client
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
 }
 
-// Pool de conexões
-const pool = mysql.createPool(dbConfig)
+export const prisma = globalForPrisma.prisma ?? new PrismaClient()
 
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+// Função para executar queries customizadas (compatibilidade com código existente)
 export async function executeQuery(query: string, params: any[] = []) {
   try {
-    const [results] = await pool.execute(query, params)
+    // Para queries customizadas, use prisma.$queryRaw ou prisma.$executeRaw
+    const results = await prisma.$queryRawUnsafe(query, ...params)
     return results
   } catch (error) {
     console.error('Database query error:', error)
@@ -24,8 +21,9 @@ export async function executeQuery(query: string, params: any[] = []) {
   }
 }
 
+// Função para obter conexão (compatibilidade)
 export async function getConnection() {
-  return await pool.getConnection()
+  return prisma
 }
 
-export default pool
+export default prisma

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/lib/database'
+import { prisma } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 export async function PUT(
@@ -32,47 +32,53 @@ export async function PUT(
     }
 
     // Verificar se check-in existe e está pendente
-    const checkIn = await executeQuery(
-      'SELECT * FROM checkins WHERE id = ? AND status = "pending"',
-      [checkInId]
-    ) as any[]
+    const checkIn = await prisma.checkin.findFirst({
+      where: {
+        id: checkInId,
+        status: 'pending'
+      }
+    })
 
-    if (checkIn.length === 0) {
+    if (!checkIn) {
       return NextResponse.json({ 
         error: 'Check-in não encontrado ou já foi processado' 
       }, { status: 404 })
     }
 
     // Atualizar status do check-in
-    await executeQuery(
-      'UPDATE checkins SET status = ?, approved_by = ?, approved_at = NOW() WHERE id = ?',
-      [status, authUser.id, checkInId]
-    )
+    await prisma.checkin.update({
+      where: { id: checkInId },
+      data: {
+        status,
+        approvedBy: authUser.id,
+        approvedAt: new Date()
+      }
+    })
 
     // Retornar check-in atualizado
-    const updatedCheckIn = await executeQuery(
-      `SELECT c.*, u.name as user_name, u.belt, u.degree 
-       FROM checkins c 
-       JOIN users u ON c.user_id = u.id 
-       WHERE c.id = ?`,
-      [checkInId]
-    ) as any[]
-
-    const result = updatedCheckIn[0]
-    return NextResponse.json({
-      id: result.id,
-      userId: result.user_id,
-      date: result.date,
-      status: result.status,
-      approvedBy: result.approved_by,
-      approvedAt: result.approved_at,
-      createdAt: result.created_at,
-      user: {
-        id: result.user_id,
-        name: result.user_name,
-        belt: result.belt,
-        degree: result.degree,
+    const updatedCheckIn = await prisma.checkin.findUnique({
+      where: { id: checkInId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            belt: true,
+            degree: true,
+          }
+        }
       }
+    })
+
+    return NextResponse.json({
+      id: updatedCheckIn!.id,
+      userId: updatedCheckIn!.userId,
+      date: updatedCheckIn!.date,
+      status: updatedCheckIn!.status,
+      approvedBy: updatedCheckIn!.approvedBy,
+      approvedAt: updatedCheckIn!.approvedAt,
+      createdAt: updatedCheckIn!.createdAt,
+      user: updatedCheckIn!.user
     })
   } catch (error) {
     console.error('Approve checkin error:', error)
