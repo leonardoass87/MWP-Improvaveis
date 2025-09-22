@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       name: user.name,
       email: user.email,
       role: user.role,
-      belt: user.belt,
+      belt: user.belt || undefined,
       degree: user.degree,
       active: user.active,
     }

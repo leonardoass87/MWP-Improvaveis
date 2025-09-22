@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select, Tooltip } from 'antd'
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
@@ -64,73 +64,7 @@ export default function ProfessorDashboard() {
   })
   const router = useRouter()
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userData = localStorage.getItem('user')
-
-    if (!token || !userData) {
-      router.push('/login')
-      return
-    }
-
-    const parsedUser = JSON.parse(userData)
-    if (parsedUser.role !== 'instructor') {
-      router.push(`/dashboard/${parsedUser.role}`)
-      return
-    }
-
-    setUser(parsedUser)
-    loadData()
-    
-    // Atualizar dados a cada 30 segundos para capturar novos check-ins
-    const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
-  }, [router])
-
-  const generateChartData = (studentsData: StudentStats[], checkInsData: CheckInRequest[]) => {
-    // Dados para gráfico de check-ins semanais
-    const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-    const weeklyData = weekDays.map((day, index) => ({
-      day,
-      checkIns: Math.floor(Math.random() * 20) + 5 // Dados simulados
-    }))
-
-    // Dados para distribuição de faixas
-    const beltCounts: { [key: string]: number } = {}
-    const beltColors: { [key: string]: string } = {
-      'Branca': '#ffffff',
-      'Azul': '#1890ff',
-      'Roxa': '#722ed1',
-      'Marrom': '#8b4513',
-      'Preta': '#000000'
-    }
-
-    studentsData.forEach(student => {
-      beltCounts[student.belt] = (beltCounts[student.belt] || 0) + 1
-    })
-
-    const beltDistribution = Object.entries(beltCounts).map(([belt, count]) => ({
-      belt,
-      count,
-      color: beltColors[belt] || '#666666'
-    }))
-
-    // Dados para tendência mensal
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun']
-    const monthlyTrend = months.map(month => ({
-      month,
-      checkIns: Math.floor(Math.random() * 100) + 50,
-      students: Math.floor(Math.random() * 30) + 20
-    }))
-
-    setChartData({
-      weeklyCheckIns: weeklyData,
-      beltDistribution,
-      monthlyTrend
-    })
-  }
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token')
       if (!token) return
@@ -258,7 +192,75 @@ export default function ProfessorDashboard() {
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const userData = localStorage.getItem('user')
+
+    if (!token || !userData) {
+      router.push('/login')
+      return
+    }
+
+    const parsedUser = JSON.parse(userData)
+    if (parsedUser.role !== 'instructor') {
+      router.push(`/dashboard/${parsedUser.role}`)
+      return
+    }
+
+    setUser(parsedUser)
+    loadData()
+    
+    // Atualizar dados a cada 30 segundos para capturar novos check-ins
+    const interval = setInterval(loadData, 30000)
+    return () => clearInterval(interval)
+  }, [router, loadData])
+
+  const generateChartData = (studentsData: StudentStats[], checkInsData: CheckInRequest[]) => {
+    // Dados para gráfico de check-ins semanais
+    const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+    const weeklyData = weekDays.map((day, index) => ({
+      day,
+      checkIns: Math.floor(Math.random() * 20) + 5 // Dados simulados
+    }))
+
+    // Dados para distribuição de faixas
+    const beltCounts: { [key: string]: number } = {}
+    const beltColors: { [key: string]: string } = {
+      'Branca': '#ffffff',
+      'Azul': '#1890ff',
+      'Roxa': '#722ed1',
+      'Marrom': '#8b4513',
+      'Preta': '#000000'
+    }
+
+    studentsData.forEach(student => {
+      beltCounts[student.belt] = (beltCounts[student.belt] || 0) + 1
+    })
+
+    const beltDistribution = Object.entries(beltCounts).map(([belt, count]) => ({
+      belt,
+      count,
+      color: beltColors[belt] || '#666666'
+    }))
+
+    // Dados para tendência mensal
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun']
+    const monthlyTrend = months.map(month => ({
+      month,
+      checkIns: Math.floor(Math.random() * 100) + 50,
+      students: Math.floor(Math.random() * 30) + 20
+    }))
+
+    setChartData({
+      weeklyCheckIns: weeklyData,
+      beltDistribution,
+      monthlyTrend
+    })
   }
+
+
 
   // Função para filtrar alunos
   useEffect(() => {

@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { hashPassword, getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { CreateUserData } from '@/types'
+import { Belt } from '@prisma/client'
+
+// Função para mapear BeltColor para o enum Belt do Prisma
+function mapBeltColor(belt?: string): Belt | null {
+  if (!belt) return null
+  
+  const beltMap: { [key: string]: Belt } = {
+    'white': Belt.branca,
+    'blue': Belt.azul,
+    'purple': Belt.roxa,
+    'brown': Belt.marrom,
+    'black': Belt.preta,
+    'branca': Belt.branca,
+    'azul': Belt.azul,
+    'roxa': Belt.roxa,
+    'marrom': Belt.marrom,
+    'preta': Belt.preta
+  }
+  
+  return beltMap[belt] || null
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -86,7 +107,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role,
-        belt: belt || null,
+        belt: mapBeltColor(belt),
         degree: degree || 0,
         active: true
       }
