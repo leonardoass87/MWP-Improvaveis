@@ -1,30 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcryptjs'
-import { executeQuery } from '@/lib/database'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+import { prisma } from '@/lib/database'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { Belt } from '@prisma/client'
 
 // Força renderização dinâmica para evitar Dynamic Server Error
 export const dynamic = 'force-dynamic'
 
+// Função para mapear cores de faixa
+function mapBeltColor(belt: string): Belt | null {
+  const beltMap: { [key: string]: Belt } = {
+    'white': 'branca',
+    'branca': 'branca',
+    'blue': 'azul', 
+    'azul': 'azul',
+    'purple': 'roxa',
+    'roxa': 'roxa',
+    'brown': 'marrom',
+    'marrom': 'marrom',
+    'black': 'preta',
+    'preta': 'preta'
+  }
+  return beltMap[belt] || null
+}
+
 export async function PUT(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = getTokenFromRequest(request)
+    if (!token) {
       return NextResponse.json(
         { message: 'Token de autorização necessário' },
         { status: 401 }
       )
     }
 
-    const token = authHeader.substring(7)
-    
-    let decoded: any
-    try {
-      decoded = jwt.verify(token, JWT_SECRET)
-    } catch (error) {
+    const authUser = verifyToken(token)
+    if (!authUser) {
       return NextResponse.json(
         { message: 'Token inválido' },
         { status: 401 }
@@ -46,11 +56,12 @@ export async function PUT(request: NextRequest) {
       weight,
       height,
       medicalInfo,
-      goals
+      goals,
+      avatar
     } = body
 
     // Verificar se o usuário está tentando atualizar seu próprio perfil ou se é admin/instructor
-    if (decoded.id !== id && decoded.role !== 'admin' && decoded.role !== 'instructor') {
+    if (authUser.id !== id && authUser.role !== 'admin' && authUser.role !== 'instructor') {
       return NextResponse.json(
         { message: 'Não autorizado a atualizar este perfil' },
         { status: 403 }
@@ -73,12 +84,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verificar se o email já está em uso por outro usuário
-    const existingUser = await executeQuery(
-      'SELECT id FROM users WHERE email = ? AND id != ?',
-      [email, id]
-    ) as any[]
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: email,
+        id: { not: id }
+      }
+    })
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       return NextResponse.json(
         { message: 'Este email já está em uso por outro usuário' },
         { status: 400 }
@@ -86,81 +99,91 @@ export async function PUT(request: NextRequest) {
     }
 
     // Buscar o usuário atual
-    const currentUser = await executeQuery(
-      'SELECT * FROM users WHERE id = ?',
-      [id]
-    ) as any[]
+    const currentUser = await prisma.user.findUnique({
+      where: { id: id }
+    })
 
-    if (currentUser.length === 0) {
+    if (!currentUser) {
       return NextResponse.json(
         { message: 'Usuário não encontrado' },
         { status: 404 }
       )
     }
 
-    const user = currentUser[0]
-
     // Verificar se o usuário pode alterar faixa e grau
-    let finalBelt = user.belt
-    let finalDegree = user.degree
+    let finalBelt = currentUser.belt
+    let finalDegree = currentUser.degree
 
-    if (decoded.role === 'admin' || decoded.role === 'instructor') {
-      // Admins e instrutores podem alterar faixa e grau
-      finalBelt = belt || user.belt
-      finalDegree = degree !== undefined ? degree : user.degree
+    console.log('Debug - Belt update:', {
+      authUserId: authUser.id,
+      targetUserId: id,
+      authUserRole: authUser.role,
+      receivedBelt: belt,
+      receivedDegree: degree,
+      currentBelt: currentUser.belt,
+      currentDegree: currentUser.degree
+    })
+
+    // Permitir que todos os usuários alterem sua própria faixa e grau
+    // Admins e instrutores também podem alterar de outros usuários
+    if (authUser.id === id || authUser.role === 'admin' || authUser.role === 'instructor') {
+      finalBelt = belt ? mapBeltColor(belt) : currentUser.belt
+      finalDegree = degree !== undefined ? degree : currentUser.degree
+      
+      console.log('Debug - Belt mapping result:', {
+        mappedBelt: mapBeltColor(belt),
+        finalBelt,
+        finalDegree
+      })
     }
 
-    // Atualizar o perfil
-    await executeQuery(`
-      UPDATE users SET 
-        name = ?,
-        email = ?,
-        phone = ?,
-        address = ?,
-        emergency_contact = ?,
-        emergency_phone = ?,
-        belt = ?,
-        degree = ?,
-        birth_date = ?,
-        weight = ?,
-        height = ?,
-        medical_info = ?,
-        goals = ?,
-        updated_at = NOW()
-      WHERE id = ?
-    `, [
+    // Preparar dados para atualização
+    const updateData: any = {
       name,
       email,
-      phone || null,
-      address || null,
-      emergencyContact || null,
-      emergencyPhone || null,
-      finalBelt,
-      finalDegree,
-      birthDate || null,
-      weight || null,
-      height || null,
-      medicalInfo || null,
-      goals || null,
-      id
-    ])
-
-    // Buscar o usuário atualizado
-    const updatedUser = await executeQuery(
-      'SELECT id, name, email, role, belt, degree, phone, address, emergency_contact as emergencyContact, emergency_phone as emergencyPhone, birth_date as birthDate, weight, height, medical_info as medicalInfo, goals, active FROM users WHERE id = ?',
-      [id]
-    ) as any[]
-
-    if (updatedUser.length === 0) {
-      return NextResponse.json(
-        { message: 'Erro ao buscar usuário atualizado' },
-        { status: 500 }
-      )
+      belt: finalBelt,
+      degree: finalDegree,
+      updatedAt: new Date()
     }
 
-    const userResponse = updatedUser[0]
+    // Adicionar campos opcionais apenas se foram fornecidos
+    if (phone !== undefined) updateData.phone = phone || null
+    if (address !== undefined) updateData.address = address || null
+    if (emergencyContact !== undefined) updateData.emergencyContact = emergencyContact || null
+    if (emergencyPhone !== undefined) updateData.emergencyPhone = emergencyPhone || null
+    if (birthDate !== undefined) updateData.birthDate = birthDate || null
+    if (weight !== undefined) updateData.weight = weight || null
+    if (height !== undefined) updateData.height = height || null
+    if (medicalInfo !== undefined) updateData.medicalInfo = medicalInfo || null
+    if (goals !== undefined) updateData.goals = goals || null
+    if (avatar !== undefined) updateData.avatar = avatar || null
 
-    return NextResponse.json(userResponse, { status: 200 })
+    // Atualizar o perfil
+    const updatedUser = await prisma.user.update({
+      where: { id: id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        belt: true,
+        degree: true,
+        phone: true,
+        address: true,
+        emergencyContact: true,
+        emergencyPhone: true,
+        birthDate: true,
+        weight: true,
+        height: true,
+        medicalInfo: true,
+        goals: true,
+        avatar: true,
+        active: true
+      }
+    })
+
+    return NextResponse.json(updatedUser, { status: 200 })
 
   } catch (error) {
     console.error('Erro ao atualizar perfil:', error)

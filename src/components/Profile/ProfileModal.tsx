@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Modal, Form, Input, Select, Button, message, Avatar, Upload, Row, Col, Typography } from 'antd'
 import { UserOutlined, CameraOutlined, SaveOutlined } from '@ant-design/icons'
 import { AuthUser } from '@/types'
+import InputMask from 'react-input-mask'
 
 const { Title, Text } = Typography
 const { Option } = Select
@@ -20,18 +21,42 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
   const [loading, setLoading] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string>('')
 
+
   useEffect(() => {
     if (visible && user) {
+      // Separar endereço em campos individuais se existir
+      const addressParts = user.address ? user.address.split(',').map(part => part.trim()) : ['', '', '', '']
+      
+      // Carregar foto do perfil se existir
+      setAvatarUrl(user.avatar || '')
+      
+      // Separar data de nascimento em dia, mês e ano
+      let birthDay = '', birthMonth = '', birthYear = ''
+      if (user.birthDate) {
+        const dateParts = user.birthDate.split('-')
+        if (dateParts.length === 3) {
+          birthYear = dateParts[0]
+          birthMonth = dateParts[1]
+          birthDay = dateParts[2]
+        }
+      }
+      
       form.setFieldsValue({
         name: user.name,
         email: user.email,
         phone: user.phone || '',
-        address: user.address || '',
+        street: addressParts[0] || '',
+        number: addressParts[1] || '',
+        complement: addressParts[2] || '',
+        neighborhood: addressParts[3] || '',
+        city: addressParts[4] || '',
         emergencyContact: user.emergencyContact || '',
         emergencyPhone: user.emergencyPhone || '',
         belt: user.belt,
         degree: user.degree,
-        birthDate: user.birthDate || '',
+        birthDay: birthDay,
+        birthMonth: birthMonth,
+        birthYear: birthYear,
         weight: user.weight || '',
         height: user.height || '',
         medicalInfo: user.medicalInfo || '',
@@ -45,29 +70,80 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
     try {
       const token = localStorage.getItem('token')
       
+      // Combinar campos de endereço
+      const addressParts = [
+        values.street || '',
+        values.number || '',
+        values.complement || '',
+        values.neighborhood || '',
+        values.city || ''
+      ].filter(part => part.trim() !== '')
+      
+      const address = addressParts.join(', ')
+      
+      // Combinar data de nascimento
+      let birthDate = null
+      if (values.birthDay && values.birthMonth && values.birthYear) {
+        const day = values.birthDay.padStart(2, '0')
+        const month = values.birthMonth.padStart(2, '0')
+        const year = values.birthYear
+        birthDate = `${year}-${month}-${day}`
+      }
+      
+      const submitData = {
+        ...values,
+        id: user.id,
+        address: address,
+        birthDate: birthDate,
+        avatar: avatarUrl
+      }
+      
+      // Remover campos individuais de endereço e data do submitData
+      delete submitData.street
+      delete submitData.number
+      delete submitData.complement
+      delete submitData.neighborhood
+      delete submitData.city
+      delete submitData.birthDay
+      delete submitData.birthMonth
+      delete submitData.birthYear
+      
       const response = await fetch('/api/profile/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...values,
-          id: user.id
-        })
+        body: JSON.stringify(submitData)
       })
 
       if (response.ok) {
-        const updatedUser = await response.json()
+        // Buscar dados atualizados da API para garantir sincronização
+        const profileResponse = await fetch('/api/profile/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
         
-        // Atualizar localStorage
-        localStorage.setItem('user', JSON.stringify(updatedUser))
-        
-        // Chamar callback para atualizar o estado no componente pai
-        onUpdate(updatedUser)
-        
-        message.success('Perfil atualizado com sucesso!')
-        onClose()
+        if (profileResponse.ok) {
+          const updatedUser = await profileResponse.json()
+          
+          // Atualizar localStorage com dados mais recentes
+          localStorage.setItem('user', JSON.stringify(updatedUser))
+          
+          // Chamar callback para atualizar o estado no componente pai
+          onUpdate(updatedUser)
+          
+          message.success('Perfil atualizado com sucesso!')
+          onClose()
+        } else {
+          // Fallback: usar dados da resposta de update
+          const updatedUser = await response.json()
+          localStorage.setItem('user', JSON.stringify(updatedUser))
+          onUpdate(updatedUser)
+          message.success('Perfil atualizado com sucesso!')
+          onClose()
+        }
       } else {
         const error = await response.json()
         message.error(error.message || 'Erro ao atualizar perfil')
@@ -81,23 +157,21 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
   }
 
   const getBeltOptions = () => {
-    const belts = ['white', 'blue', 'purple', 'brown', 'black']
+    const belts = [
+      { value: 'branca', label: 'Branca', color: '#ffffff' },
+      { value: 'azul', label: 'Azul', color: '#1890ff' },
+      { value: 'roxa', label: 'Roxa', color: '#722ed1' },
+      { value: 'marrom', label: 'Marrom', color: '#8b4513' },
+      { value: 'preta', label: 'Preta', color: '#000000' }
+    ]
     return belts.map(belt => (
-      <Option key={belt} value={belt}>
+      <Option key={belt.value} value={belt.value}>
         <div className="flex items-center">
           <span 
             className="inline-block w-3 h-3 rounded-full mr-2 border border-gray-300"
-            style={{ 
-              backgroundColor: belt === 'white' ? '#ffffff' : 
-                             belt === 'blue' ? '#1890ff' : 
-                             belt === 'purple' ? '#722ed1' : 
-                             belt === 'brown' ? '#8b4513' : '#000000'
-            }}
+            style={{ backgroundColor: belt.color }}
           />
-          <span className="capitalize">{belt === 'white' ? 'Branca' : 
-                                       belt === 'blue' ? 'Azul' : 
-                                       belt === 'purple' ? 'Roxa' : 
-                                       belt === 'brown' ? 'Marrom' : 'Preta'}</span>
+          <span>{belt.label}</span>
         </div>
       </Option>
     ))
@@ -135,14 +209,42 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
           className="bg-gradient-to-r from-blue-500 to-purple-600 border-2 border-blue-200"
         />
         <div className="mt-2">
-          <Button
-            type="link"
-            icon={<CameraOutlined />}
-            size="small"
-            className="text-blue-500"
+          <Upload
+            name="avatar"
+            listType="picture"
+            className="avatar-uploader"
+            showUploadList={false}
+            beforeUpload={(file) => {
+              const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+              if (!isJpgOrPng) {
+                message.error('Você só pode fazer upload de arquivos JPG/PNG!')
+                return false
+              }
+              const isLt2M = file.size / 1024 / 1024 < 2
+              if (!isLt2M) {
+                message.error('A imagem deve ter menos de 2MB!')
+                return false
+              }
+              
+              // Criar preview da imagem
+              const reader = new FileReader()
+              reader.onload = (e) => {
+                setAvatarUrl(e.target?.result as string)
+              }
+              reader.readAsDataURL(file)
+              
+              return false // Impede o upload automático
+            }}
           >
-            Alterar foto
-          </Button>
+            <Button
+              type="link"
+              icon={<CameraOutlined />}
+              size="small"
+              className="text-blue-500"
+            >
+              Alterar foto
+            </Button>
+          </Upload>
         </div>
       </div>
 
@@ -182,25 +284,90 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
               label="Telefone"
               name="phone"
             >
-              <Input placeholder="(11) 99999-9999" />
+              <InputMask mask="(99)99999-9999" maskChar=" ">
+                {(inputProps: any) => <Input {...inputProps} placeholder="(11)99999-9999" />}
+              </InputMask>
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
               label="Data de Nascimento"
-              name="birthDate"
             >
-              <Input type="date" />
+              <Row gutter={8}>
+                <Col span={8}>
+                  <Form.Item
+                    name="birthDay"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input placeholder="Dia" maxLength={2} />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    name="birthMonth"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input placeholder="Mês" maxLength={2} />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    name="birthYear"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input placeholder="Ano" maxLength={4} />
+                  </Form.Item>
+                </Col>
+              </Row>
             </Form.Item>
           </Col>
         </Row>
 
-        <Form.Item
-          label="Endereço"
-          name="address"
-        >
-          <Input.TextArea rows={2} placeholder="Digite seu endereço completo" />
-        </Form.Item>
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Rua/Avenida"
+              name="street"
+            >
+              <Input placeholder="Ex: Rua das Flores, Av. Paulista" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={6}>
+            <Form.Item
+              label="Número"
+              name="number"
+            >
+              <Input placeholder="123" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={6}>
+            <Form.Item
+              label="Complemento"
+              name="complement"
+            >
+              <Input placeholder="Apto 45" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Bairro"
+              name="neighborhood"
+            >
+              <Input placeholder="Centro, Vila Madalena" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Cidade"
+              name="city"
+            >
+              <Input placeholder="São Paulo" />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col xs={24} md={12}>
@@ -216,7 +383,9 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
               label="Telefone de Emergência"
               name="emergencyPhone"
             >
-              <Input placeholder="(11) 99999-9999" />
+              <InputMask mask="(99)99999-9999" maskChar=" ">
+                {(inputProps: any) => <Input {...inputProps} placeholder="(11)99999-9999" />}
+              </InputMask>
             </Form.Item>
           </Col>
         </Row>
@@ -227,7 +396,13 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
               label="Faixa"
               name="belt"
             >
-              <Select placeholder="Selecione sua faixa" disabled={user.role === 'student'}>
+              <Select 
+                placeholder="Selecione sua faixa" 
+                style={{ 
+                  background: '#2a2a2a',
+                  color: '#fff'
+                }}
+              >
                 {getBeltOptions()}
               </Select>
             </Form.Item>
@@ -237,7 +412,13 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
               label="Grau"
               name="degree"
             >
-              <Select placeholder="Grau" disabled={user.role === 'student'}>
+              <Select 
+                placeholder="Grau" 
+                style={{ 
+                  background: '#2a2a2a',
+                  color: '#fff'
+                }}
+              >
                 {getDegreeOptions()}
               </Select>
             </Form.Item>

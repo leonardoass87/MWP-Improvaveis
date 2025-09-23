@@ -7,6 +7,7 @@ import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts'
+import Image from 'next/image'
 
 const { Title, Text } = Typography
 const { confirm } = Modal
@@ -1421,13 +1422,13 @@ export default function ProfessorDashboard() {
                               flexShrink: 0
                             }}
                           >
-                            <span style={{ 
-                              color: student.belt === 'Branca' ? '#000000' : '#ffffff',
-                              fontSize: '12px',
-                              fontWeight: 'bold'
-                            }}>
-                              🥋
-                            </span>
+                            <Image 
+                              src="/logo.png" 
+                              alt="BJJ Logo" 
+                              width={32} 
+                              height={32}
+                              className="object-contain"
+                            />
                           </div>
                           <div className="min-w-0 flex-1">
                             <Text strong style={{ color: '#ffffff', fontSize: '16px', display: 'block' }}>

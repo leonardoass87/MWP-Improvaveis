@@ -59,6 +59,7 @@ export interface AuthUser {
   height?: string
   medicalInfo?: string
   goals?: string
+  avatar?: string
 }
 
 export interface CreateUserData {

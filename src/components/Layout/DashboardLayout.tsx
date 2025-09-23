@@ -32,8 +32,50 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
   const [isMobile, setIsMobile] = useState(false)
   const [profileModalVisible, setProfileModalVisible] = useState(false)
   const [currentUser, setCurrentUser] = useState<AuthUser>(user)
+  const [version, setVersion] = useState('v0.2.0') // fallback
   const router = useRouter()
   const pathname = usePathname()
+
+  const refreshUserData = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await fetch('/api/profile/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setCurrentUser(userData)
+        localStorage.setItem('user', JSON.stringify(userData))
+      }
+    } catch (error) {
+      console.error('Erro ao recarregar dados do usuário:', error)
+    }
+  }
+
+  // Buscar versão da API
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const response = await fetch('/api/version')
+        const data = await response.json()
+        setVersion(`v${data.version}`)
+      } catch (error) {
+        console.error('Erro ao buscar versão:', error)
+        // Mantém o fallback
+      }
+    }
+    fetchVersion()
+  }, [])
+
+  // Sincronizar dados do usuário na montagem
+  useEffect(() => {
+    refreshUserData()
+  }, [])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -195,7 +237,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           {!collapsed && (
             <div className="text-center">
               <Text className="text-white font-bold text-xl bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                BJJ Academy
+                Impravaveis BJJ
               </Text>
               <div className="text-xs text-gray-300 mt-1">Premium Dashboard</div>
             </div>
@@ -221,7 +263,8 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 <div className="relative">
                   <Avatar
                     size={48}
-                    icon={<UserOutlined />}
+                    src={currentUser.avatar}
+                    icon={!currentUser.avatar && <UserOutlined />}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 border-2 border-white/20"
                   />
                   <div className="absolute -bottom-1 -right-1">
@@ -246,6 +289,17 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                       </span>
                     </div>
                   )}
+                  {/* Versão da aplicação */}
+                  <div className="mt-1">
+                    <span style={{ 
+                      fontSize: '10px', 
+                      color: '#b9bbbe', 
+                      fontWeight: 400, 
+                      opacity: 0.6 
+                    }}>
+                      {version}
+                    </span>
+                  </div>
                 </div>
                 <SettingOutlined className="text-gray-300 text-sm flex-shrink-0" />
               </div>

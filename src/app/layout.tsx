@@ -28,14 +28,14 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <title>BJJ Academy MVP</title>
+        <title>Impravaveis BJJ MVP</title>
         <meta name="description" content="Sistema de gestão para academia de Jiu-Jitsu" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#5865f2" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="BJJ Academy" />
+        <meta name="apple-mobile-web-app-title" content="Impravaveis BJJ" />
       </head>
       <body className={inter.className}>
         <AntdRegistry>

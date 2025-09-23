@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Form, Input, Button, Card, Typography, message, Spin, Modal } from 'antd'
 import { UserOutlined, LockOutlined, UserAddOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import { LoginCredentials, AuthUser } from '@/types'
 import RegisterForm from '@/components/Auth/RegisterForm'
+import Image from 'next/image'
 
 const { Title, Text, Link } = Typography
 
@@ -89,8 +90,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-discord-darker to-gray-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-discord-darker to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Marca d'água ao fundo */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-5">
+        <Image 
+          src="/logo.png" 
+          alt="Background Logo" 
+          width={400} 
+          height={400}
+          className="object-contain"
+        />
+      </div>
+      
+      <div className="w-full max-w-md relative z-10">
         <Card 
           className="shadow-2xl"
           style={{ 
@@ -101,22 +113,19 @@ export default function LoginPage() {
           }}
         >
           <div className="text-center mb-8">
-            <div className="mb-4">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-discord-blurple to-blue-500 rounded-full flex items-center justify-center mb-4">
-                <span className="text-white text-2xl font-bold">🥋</span>
+            <div className="mb-6">
+              <div className="mx-auto mb-6 flex items-center justify-center">
+                <Image 
+                  src="/logo.png" 
+                  alt="Improvaveis BJJ Logo" 
+                  width={150} 
+                  height={150}
+                  className="object-contain drop-shadow-lg"
+                />
               </div>
             </div>
             <Title level={2} className="text-white mb-2" style={{ color: '#ffffff', marginBottom: '8px' }}>
-              Improvaveis-BJJ 
-              <span style={{ 
-                fontSize: '14px', 
-                color: '#b9bbbe', 
-                fontWeight: '400',
-                marginLeft: '8px',
-                opacity: '0.8'
-              }}>
-                v0.1.0
-              </span>
+              Improvaveis-BJJ
             </Title>
             <Text className="text-gray-300" style={{ color: '#b9bbbe' }}>
               Faça login para acessar o sistema

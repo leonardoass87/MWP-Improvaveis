@@ -1,6 +1,6 @@
 # Deploy para Produção - Vercel
 
-Este guia explica como fazer o deploy da aplicação BJJ Academy para produção na Vercel.
+Este guia explica como fazer o deploy da aplicação Impravaveis BJJ para produção na Vercel.
 
 ## Pré-requisitos
 
