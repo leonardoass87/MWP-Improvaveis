@@ -38,8 +38,16 @@ export default function LoginPage() {
         
         message.success('Login realizado com sucesso!')
         
+        // Mapear roles em inglês para rotas em português
+        const roleToRoute = {
+          'student': 'aluno',
+          'instructor': 'professor',
+          'admin': 'admin'
+        }
+        
         // Redirecionar para dashboard baseado no role
-        router.push(`/dashboard/${data.user.role}`)
+        const route = roleToRoute[data.user.role as keyof typeof roleToRoute] || data.user.role
+        router.push(`/dashboard/${route}`)
       } else {
         message.error(data.error || 'Erro ao fazer login')
       }

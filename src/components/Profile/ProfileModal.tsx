@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Input, Select, Button, message, Avatar, Upload, Row, Col, Typography } from 'antd'
-import { UserOutlined, CameraOutlined, SaveOutlined } from '@ant-design/icons'
+import { Modal, Form, Input, Select, Button, message, Row, Col, Typography } from 'antd'
+import { UserOutlined, SaveOutlined } from '@ant-design/icons'
 import { AuthUser } from '@/types'
 import InputMask from 'react-input-mask'
+import AvatarUpload from './AvatarUpload'
 
 const { Title, Text } = Typography
 const { Option } = Select
@@ -201,51 +202,11 @@ export default function ProfileModal({ visible, onClose, user, onUpdate }: Profi
       className="profile-modal"
       style={{ top: 20 }}
     >
-      <div className="mb-6 text-center">
-        <Avatar
-          size={80}
-          icon={<UserOutlined />}
-          src={avatarUrl}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 border-2 border-blue-200"
+      <div className="mb-6">
+        <AvatarUpload
+          currentAvatar={avatarUrl}
+          onAvatarChange={setAvatarUrl}
         />
-        <div className="mt-2">
-          <Upload
-            name="avatar"
-            listType="picture"
-            className="avatar-uploader"
-            showUploadList={false}
-            beforeUpload={(file) => {
-              const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
-              if (!isJpgOrPng) {
-                message.error('Você só pode fazer upload de arquivos JPG/PNG!')
-                return false
-              }
-              const isLt2M = file.size / 1024 / 1024 < 2
-              if (!isLt2M) {
-                message.error('A imagem deve ter menos de 2MB!')
-                return false
-              }
-              
-              // Criar preview da imagem
-              const reader = new FileReader()
-              reader.onload = (e) => {
-                setAvatarUrl(e.target?.result as string)
-              }
-              reader.readAsDataURL(file)
-              
-              return false // Impede o upload automático
-            }}
-          >
-            <Button
-              type="link"
-              icon={<CameraOutlined />}
-              size="small"
-              className="text-blue-500"
-            >
-              Alterar foto
-            </Button>
-          </Upload>
-        </div>
       </div>
 
       <Form

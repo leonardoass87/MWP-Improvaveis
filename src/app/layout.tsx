@@ -17,7 +17,6 @@ const themeConfig = {
     colorBorder: '#40444b',
     borderRadius: 4,
   },
-  algorithm: undefined, // Removendo o algoritmo que estava causando problema
 }
 
 export default function RootLayout({

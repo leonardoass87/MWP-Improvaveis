@@ -114,6 +114,32 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Verificar histórico de check-ins para calcular faltas consecutivas
+    const userCheckIns = await prisma.checkin.findMany({
+      where: { userId: authUser.id },
+      select: {
+        date: true,
+        status: true,
+        createdAt: true
+      },
+      orderBy: { date: 'desc' }
+    })
+
+    // Calcular faltas consecutivas antes do check-in de hoje
+    const approvedCheckIns = userCheckIns.filter(c => c.status === 'approved')
+    let consecutiveAbsences = 0
+    
+    if (approvedCheckIns.length > 0) {
+      const lastCheckIn = new Date(approvedCheckIns[0].date)
+      const today = new Date()
+      const daysSinceLastCheckIn = Math.floor((today.getTime() - lastCheckIn.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysSinceLastCheckIn > 3) {
+        const weeksSinceLastCheckIn = daysSinceLastCheckIn / 7
+        consecutiveAbsences = Math.floor(weeksSinceLastCheckIn * 2) // 2 treinos por semana
+      }
+    }
+
     // Criar check-in
     const newCheckIn = await prisma.checkin.create({
       data: {
@@ -123,13 +149,32 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
+    // Preparar resposta com alertas se necessário
+    const response: any = {
       id: newCheckIn.id,
       userId: newCheckIn.userId,
       date: newCheckIn.date,
       status: newCheckIn.status,
       createdAt: newCheckIn.createdAt,
-    })
+    }
+
+    // Adicionar alertas baseados nas faltas consecutivas
+    if (consecutiveAbsences >= 2) {
+      response.warning = {
+        type: consecutiveAbsences >= 3 ? 'critical' : 'warning',
+        message: consecutiveAbsences >= 3 
+          ? `Atenção! Você teve ${consecutiveAbsences} faltas consecutivas. Risco de desativação.`
+          : `Você teve ${consecutiveAbsences} faltas consecutivas. Mantenha a frequência!`,
+        consecutiveAbsences
+      }
+    } else if (consecutiveAbsences === 1) {
+      response.info = {
+        message: 'Que bom te ver de volta! Mantenha a frequência regular.',
+        consecutiveAbsences
+      }
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Create checkin error:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

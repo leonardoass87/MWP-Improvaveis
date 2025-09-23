@@ -251,10 +251,6 @@ body {
     overflow-x: auto !important;
   }
   
-  .ant-col {
-    margin-bottom: 16px !important;
-  }
-  
   .ant-btn {
     width: 100% !important;
     margin-bottom: 8px !important;

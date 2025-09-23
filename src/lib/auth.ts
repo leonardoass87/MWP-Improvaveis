@@ -20,6 +20,9 @@ export function generateToken(user: AuthUser): string {
       email: user.email,
       role: user.role,
       name: user.name,
+      belt: user.belt,
+      degree: user.degree,
+      active: user.active,
     },
     JWT_SECRET,
     { expiresIn: '7d' }
