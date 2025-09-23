@@ -92,7 +92,7 @@ export default function RankingAluno() {
     loadStudentsData()
   }, [router])
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Spin size="large" />
