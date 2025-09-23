@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { $Enums } from '@prisma/client'
 
 // Força renderização dinâmica
 export const dynamic = 'force-dynamic'
+
+// Interface para dados de risco do estudante
+interface StudentRiskData {
+  id: number
+  name: string
+  email: string
+  belt: $Enums.Belt | null
+  consecutiveAbsences: number
+  lastCheckIn: string | null
+  daysSinceLastCheckIn: number | null
+}
 
 // Função para calcular faltas consecutivas (mesma lógica da API de absences)
 function calculateConsecutiveAbsences(checkIns: any[], expectedTrainingDays: number = 2) {
@@ -162,10 +174,14 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const riskAnalysis = {
+    const riskAnalysis: {
+      safe: StudentRiskData[]
+      warning: StudentRiskData[] // 2 faltas consecutivas
+      critical: StudentRiskData[] // 3+ faltas consecutivas
+    } = {
       safe: [],
-      warning: [], // 2 faltas consecutivas
-      critical: [] // 3+ faltas consecutivas
+      warning: [],
+      critical: []
     }
 
     // Analisar cada aluno
