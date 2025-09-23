@@ -13,7 +13,7 @@ import {
   StarOutlined
 } from '@ant-design/icons'
 import { useRouter, usePathname } from 'next/navigation'
-import { AuthUser } from '@/types/auth'
+import { AuthUser } from '@/types'
 import ProfileModal from '@/components/Profile/ProfileModal'
 
 const { Sider, Content } = Layout
