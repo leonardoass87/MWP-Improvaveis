@@ -107,7 +107,16 @@ export default function LoginPage() {
               </div>
             </div>
             <Title level={2} className="text-white mb-2" style={{ color: '#ffffff', marginBottom: '8px' }}>
-              BJJ Academy
+              Improvaveis-BJJ 
+              <span style={{ 
+                fontSize: '14px', 
+                color: '#b9bbbe', 
+                fontWeight: '400',
+                marginLeft: '8px',
+                opacity: '0.8'
+              }}>
+                v0.1.0
+              </span>
             </Title>
             <Text className="text-gray-300" style={{ color: '#b9bbbe' }}>
               Faça login para acessar o sistema

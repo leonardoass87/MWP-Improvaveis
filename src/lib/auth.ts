@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { NextRequest } from 'next/server'
 import { AuthUser } from '@/types'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
@@ -38,11 +39,12 @@ export function verifyToken(token: string): AuthUser | null {
       active: decoded.active,
     }
   } catch (error) {
+    console.log('❌ Erro ao verificar token:', error)
     return null
   }
 }
 
-export function getTokenFromRequest(request: Request): string | null {
+export function getTokenFromRequest(request: NextRequest): string | null {
   const authHeader = request.headers.get('authorization')
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7)
