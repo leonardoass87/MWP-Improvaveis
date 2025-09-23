@@ -1,10 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/lib/database'
+import { executeQuery, prisma } from '@/lib/database'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { UpdateUserData } from '@/types'
 
 // Força renderização dinâmica para evitar Dynamic Server Error
 export const dynamic = 'force-dynamic'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const token = getTokenFromRequest(request)
+    if (!token) {
+      return NextResponse.json({ error: 'Token não fornecido' }, { status: 401 })
+    }
+
+    const authUser = verifyToken(token)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
+    }
+
+    // Apenas admin e professor podem buscar dados de outros usuários
+    if (authUser.role !== 'admin' && authUser.role !== 'instructor') {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
+    }
+
+    const userId = parseInt(params.id)
+
+    // Buscar dados completos do usuário
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        belt: true,
+        degree: true,
+        phone: true,
+        address: true,
+        emergencyContact: true,
+        emergencyPhone: true,
+        birthDate: true,
+        weight: true,
+        height: true,
+        medicalInfo: true,
+        goals: true,
+        avatar: true,
+        active: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+    }
+
+    return NextResponse.json(user, { status: 200 })
+
+  } catch (error) {
+    console.error('Erro ao buscar usuário:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+  }
+}
 
 export async function PUT(
   request: NextRequest,

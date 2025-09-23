@@ -95,7 +95,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
   const getMenuItems = () => {
     const roleToRoute = {
       admin: '/dashboard/admin',
-      professor: '/dashboard/professor',
+      instructor: '/dashboard/professor',
       student: '/dashboard/aluno'
     }
 
@@ -137,15 +137,6 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
       label: 'Editar Perfil',
       onClick: handleOpenProfile,
     },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Sair',
-      onClick: handleLogout,
-    },
   ]
 
   const getBeltColor = (belt: string) => {
@@ -163,7 +154,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
     switch (role) {
       case 'admin':
         return <CrownOutlined className="text-yellow-400" />
-      case 'professor':
+      case 'instructor':
         return <StarOutlined className="text-blue-400" />
       default:
         return <UserOutlined className="text-gray-400" />
@@ -174,7 +165,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
     switch (role) {
       case 'admin':
         return 'text-yellow-400'
-      case 'professor':
+      case 'instructor':
         return 'text-blue-400'
       default:
         return 'text-gray-400'
@@ -212,7 +203,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   {getRoleIcon(currentUser?.role || '')}
                   <span className={`text-sm font-medium ${getRoleColor(currentUser?.role || '')}`}>
                     {currentUser?.role === 'admin' ? 'Administrador' : 
-                     currentUser?.role === 'professor' ? 'Professor' : 'Aluno'}
+                     currentUser?.role === 'instructor' ? 'Professor' : 'Aluno'}
                   </span>
                 </div>
                 {currentUser.role === 'student' && (
@@ -263,6 +254,20 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 </div>
               </Button>
             </Dropdown>
+            
+            {/* Botão de Logout separado */}
+            <Button
+              type="text"
+              onClick={handleLogout}
+              className="w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200 mt-2"
+            >
+              <LogoutOutlined className="text-lg" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">Sair</div>
+                <div className="text-xs text-gray-400">Fazer logout</div>
+              </div>
+            </Button>
+            
             <div className="text-center text-gray-500 text-xs mt-4">
               Versão {version}
             </div>
@@ -298,7 +303,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                         {getRoleIcon(currentUser?.role || '')}
                         <span className={`text-sm font-medium ${getRoleColor(currentUser?.role || '')}`}>
                           {currentUser?.role === 'admin' ? 'Administrador' : 
-                           currentUser?.role === 'professor' ? 'Professor' : 'Aluno'}
+                           currentUser?.role === 'instructor' ? 'Professor' : 'Aluno'}
                         </span>
                       </div>
                       {currentUser?.belt && (
@@ -325,7 +330,13 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                     type="text"
                     icon={<DashboardOutlined />}
                     onClick={() => {
-                      router.push('/dashboard/aluno')
+                      const roleToRoute = {
+                        admin: '/dashboard/admin',
+                        instructor: '/dashboard/professor',
+                        student: '/dashboard/aluno'
+                      }
+                      const route = roleToRoute[currentUser?.role as keyof typeof roleToRoute] || '/dashboard/aluno'
+                      router.push(route)
                       setMobileMenuVisible(false)
                     }}
                     className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
@@ -333,17 +344,47 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                     <span>Dashboard</span>
                   </Button>
                   
-                  <Button
-                    type="text"
-                    icon={<TrophyOutlined />}
-                    onClick={() => {
-                      router.push('/dashboard/aluno/ranking')
-                      setMobileMenuVisible(false)
-                    }}
-                    className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
-                  >
-                    <span>Ranking</span>
-                  </Button>
+                  {currentUser?.role === 'student' && (
+                    <Button
+                      type="text"
+                      icon={<TrophyOutlined />}
+                      onClick={() => {
+                        router.push('/dashboard/aluno/ranking')
+                        setMobileMenuVisible(false)
+                      }}
+                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                    >
+                      <span>Ranking</span>
+                    </Button>
+                  )}
+                  
+                  {currentUser?.role === 'instructor' && (
+                    <Button
+                      type="text"
+                      icon={<UserOutlined />}
+                      onClick={() => {
+                        router.push('/dashboard/professor/alunos')
+                        setMobileMenuVisible(false)
+                      }}
+                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                    >
+                      <span>Alunos</span>
+                    </Button>
+                  )}
+                  
+                  {currentUser?.role === 'admin' && (
+                    <Button
+                      type="text"
+                      icon={<UserOutlined />}
+                      onClick={() => {
+                        router.push('/dashboard/admin/usuarios')
+                        setMobileMenuVisible(false)
+                      }}
+                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                    >
+                      <span>Usuários</span>
+                    </Button>
+                  )}
                 </div>
 
                 <div className="p-4 border-t border-gray-700/50 space-y-2 bg-gray-900/60 backdrop-blur-sm">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select, Tooltip } from 'antd'
-import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined } from '@ant-design/icons'
+import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined, CopyOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
@@ -695,9 +695,185 @@ export default function ProfessorDashboard() {
                 border: '1px solid #7289da30',
                 backgroundColor: '#7289da10'
               }}
-              onClick={() => {
-                // Implementar visualização de detalhes
-                console.log('Ver detalhes do aluno:', record.name);
+              onClick={async () => {
+                try {
+                  // Buscar dados completos do aluno
+                  const token = localStorage.getItem('token')
+                  const response = await fetch(`/api/users/${record.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  })
+                  
+                  let fullStudentData = null
+                  if (response.ok) {
+                    fullStudentData = await response.json()
+                  }
+
+                  // Calcular idade se birthDate existir
+                  const calculateAge = (birthDate: string) => {
+                    if (!birthDate) return 'Não informado'
+                    const today = new Date()
+                    const birth = new Date(birthDate)
+                    let age = today.getFullYear() - birth.getFullYear()
+                    const monthDiff = today.getMonth() - birth.getMonth()
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                      age--
+                    }
+                    return `${age} anos`
+                  }
+
+                  Modal.info({
+                    title: `📋 Detalhes de ${record.name}`,
+                    width: 600,
+                    content: (
+                      <div style={{ color: '#ffffff', fontSize: '14px' }}>
+                        {/* Informações Básicas */}
+                        <div style={{ 
+                          background: '#2f3136', 
+                          padding: '16px', 
+                          borderRadius: '8px', 
+                          marginBottom: '16px',
+                          border: '1px solid #5c6370'
+                        }}>
+                          <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                            📊 Informações Básicas
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div>
+                              <strong style={{ color: '#b9bbbe' }}>📧 Email:</strong>
+                              <div style={{ color: '#ffffff', marginTop: '4px' }}>{record.email}</div>
+                            </div>
+                            <div>
+                              <strong style={{ color: '#b9bbbe' }}>🥋 Faixa:</strong>
+                              <div style={{ color: '#ffffff', marginTop: '4px' }}>{record.belt}</div>
+                            </div>
+                            <div>
+                              <strong style={{ color: '#b9bbbe' }}>🎂 Idade:</strong>
+                              <div style={{ color: '#ffffff', marginTop: '4px' }}>
+                                {fullStudentData?.birthDate ? calculateAge(fullStudentData.birthDate) : 'Não informado'}
+                              </div>
+                            </div>
+                            <div>
+                              <strong style={{ color: '#b9bbbe' }}>⚖️ Peso:</strong>
+                              <div style={{ color: '#ffffff', marginTop: '4px' }}>
+                                {fullStudentData?.weight ? `${fullStudentData.weight} kg` : 'Não informado'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Contato */}
+                        <div style={{ 
+                          background: '#2f3136', 
+                          padding: '16px', 
+                          borderRadius: '8px', 
+                          marginBottom: '16px',
+                          border: '1px solid #5c6370'
+                        }}>
+                          <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                            📞 Contato e Endereço
+                          </h4>
+                          <div style={{ display: 'grid', gap: '12px' }}>
+                            <div>
+                              <strong style={{ color: '#b9bbbe' }}>🚨 Contato de Emergência:</strong>
+                              <div style={{ color: '#ffffff', marginTop: '4px' }}>
+                                {fullStudentData?.emergencyContact ? (
+                                  <>
+                                    <div>{fullStudentData.emergencyContact}</div>
+                                    {fullStudentData.emergencyPhone && (
+                                      <div style={{ color: '#43b581', fontWeight: '500' }}>
+                                        📱 {fullStudentData.emergencyPhone}
+                                      </div>
+                                    )}
+                                  </>
+                                ) : 'Não informado'}
+                              </div>
+                            </div>
+                            <div>
+                              <strong style={{ color: '#b9bbbe' }}>🏠 Endereço:</strong>
+                              <div style={{ color: '#ffffff', marginTop: '4px' }}>
+                                {fullStudentData?.address || 'Não informado'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Performance */}
+                        <div style={{ 
+                          background: '#2f3136', 
+                          padding: '16px', 
+                          borderRadius: '8px',
+                          border: '1px solid #5c6370'
+                        }}>
+                          <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                            📈 Performance e Frequência
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                            <div style={{ textAlign: 'center' }}>
+                              <strong style={{ color: '#b9bbbe' }}>Total Check-ins</strong>
+                              <div style={{ 
+                                color: '#ffffff', 
+                                fontSize: '20px', 
+                                fontWeight: 'bold',
+                                marginTop: '4px'
+                              }}>
+                                {record.totalCheckIns}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                              <strong style={{ color: '#b9bbbe' }}>Aprovados</strong>
+                              <div style={{ 
+                                color: '#52c41a', 
+                                fontSize: '20px', 
+                                fontWeight: 'bold',
+                                marginTop: '4px'
+                              }}>
+                                {record.approvedCheckIns}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                              <strong style={{ color: '#b9bbbe' }}>Frequência</strong>
+                              <div style={{ 
+                                color: record.attendanceRate >= 90 ? '#52c41a' : 
+                                      record.attendanceRate >= 80 ? '#faad14' : '#ff4d4f',
+                                fontSize: '20px', 
+                                fontWeight: 'bold',
+                                marginTop: '4px'
+                              }}>
+                                {record.attendanceRate.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ),
+                    okText: 'Fechar',
+                    okButtonProps: { 
+                      style: { 
+                        background: '#7289da', 
+                        borderColor: '#7289da',
+                        height: '40px',
+                        fontSize: '14px'
+                      } 
+                    }
+                  })
+                } catch (error) {
+                  console.error('Erro ao carregar detalhes do aluno:', error)
+                  // Fallback para o modal simples
+                  Modal.info({
+                    title: `Detalhes de ${record.name}`,
+                    content: (
+                      <div style={{ color: '#ffffff' }}>
+                        <p><strong>Email:</strong> {record.email}</p>
+                        <p><strong>Faixa:</strong> {record.belt}</p>
+                        <p><strong>Total de Check-ins:</strong> {record.totalCheckIns}</p>
+                        <p><strong>Check-ins Aprovados:</strong> {record.approvedCheckIns}</p>
+                        <p><strong>Taxa de Frequência:</strong> {record.attendanceRate.toFixed(1)}%</p>
+                      </div>
+                    ),
+                    okText: 'Fechar',
+                    okButtonProps: { style: { background: '#7289da', borderColor: '#7289da' } }
+                  })
+                }
               }}
             />
           </Tooltip>
@@ -1201,86 +1377,122 @@ export default function ProfessorDashboard() {
                   border: '1px solid #5c6370'
                 }}>
                   {/* Mobile Layout */}
-                  <div className="md:hidden space-y-4">
+                  <div className="md:hidden space-y-5">
                     {/* Search Input - Full width on mobile */}
-                    <Input
-                      placeholder="Buscar aluno por nome..."
-                      prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      style={{
-                        width: '100%',
-                        background: '#36393f',
-                        border: '1px solid #5c6370',
-                        color: '#ffffff',
-                        borderRadius: '8px',
-                        height: '44px'
-                      }}
-                      className="search-input"
-                    />
-                    
-                    {/* Filter and Counter Row */}
-                    <div className="flex items-center gap-3">
-                      <Select
-                        placeholder="Faixa"
-                        value={filterBelt}
-                        onChange={setFilterBelt}
-                        style={{ 
-                          flex: 1,
-                          background: '#36393f'
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <SearchOutlined style={{ color: '#7289da', fontSize: '16px' }} />
+                        <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500' }}>
+                          Buscar Aluno
+                        </span>
+                      </div>
+                      <Input
+                        placeholder="Digite o nome do aluno..."
+                        prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                          width: '100%',
+                          background: '#2f3136',
+                          border: searchTerm ? '2px solid #7289da' : '1px solid #5c6370',
+                          color: '#ffffff',
+                          borderRadius: '12px',
+                          height: '48px',
+                          fontSize: '16px'
                         }}
-                        className="filter-select"
-                        suffixIcon={<FilterOutlined style={{ color: '#b9bbbe' }} />}
-                        size="large"
-                      >
-                        <Option value="">Todas</Option>
-                        <Option value="Branca">🤍 Branca</Option>
-                        <Option value="Azul">🔵 Azul</Option>
-                        <Option value="Roxa">🟣 Roxa</Option>
-                        <Option value="Marrom">🤎 Marrom</Option>
-                        <Option value="Preta">⚫ Preta</Option>
-                      </Select>
-                      
-                      {(searchTerm || filterBelt) && (
-                        <Button
-                          type="text"
-                          icon={<CloseOutlined />}
-                          onClick={() => {
-                            setSearchTerm('')
-                            setFilterBelt('')
-                          }}
-                          style={{ 
-                            color: '#f04747',
-                            border: '1px solid #f04747',
-                            borderRadius: '8px',
-                            height: '40px',
-                            width: '40px',
-                            padding: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        />
-                      )}
+                        className="search-input"
+                        suffix={
+                          searchTerm && (
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<CloseOutlined />}
+                              onClick={() => setSearchTerm('')}
+                              style={{ 
+                                color: '#b9bbbe',
+                                padding: '2px',
+                                minWidth: 'auto',
+                                height: 'auto'
+                              }}
+                            />
+                          )
+                        }
+                      />
                     </div>
                     
-                    {/* Counter */}
-                    <div style={{ 
-                      color: '#b9bbbe', 
-                      fontSize: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      padding: '8px',
-                      background: '#36393f',
-                      borderRadius: '6px'
-                    }}>
-                      <TeamOutlined style={{ color: '#7289da' }} />
-                      <span>
-                        {filteredStudents.length} aluno{filteredStudents.length !== 1 ? 's' : ''} 
-                        {searchTerm || filterBelt ? ' encontrado' + (filteredStudents.length !== 1 ? 's' : '') : ''}
-                      </span>
+                    {/* Filter Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FilterOutlined style={{ color: '#7289da', fontSize: '16px' }} />
+                        <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500' }}>
+                          Filtrar por Faixa
+                        </span>
+                        {filterBelt && (
+                          <div style={{
+                            background: '#7289da',
+                            color: '#ffffff',
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '8px',
+                            fontWeight: '500'
+                          }}>
+                            ATIVO
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <Select
+                          placeholder="Selecione uma faixa"
+                          value={filterBelt}
+                          onChange={setFilterBelt}
+                          style={{ 
+                            flex: 1,
+                            background: '#2f3136'
+                          }}
+                          className="filter-select"
+                          suffixIcon={<FilterOutlined style={{ color: '#b9bbbe' }} />}
+                          size="large"
+                          dropdownStyle={{
+                            background: '#36393f',
+                            border: '1px solid #5c6370'
+                          }}
+                        >
+                          <Option value="">🎯 Todas as Faixas</Option>
+                          <Option value="Branca">🤍 Faixa Branca</Option>
+                          <Option value="Azul">🔵 Faixa Azul</Option>
+                          <Option value="Roxa">🟣 Faixa Roxa</Option>
+                          <Option value="Marrom">🤎 Faixa Marrom</Option>
+                          <Option value="Preta">⚫ Faixa Preta</Option>
+                        </Select>
+                      </div>
+                    </div>
+
+
+                    
+                    {/* Results Counter */}
+                    <div className="flex items-center p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl border border-gray-600">
+                      <div className="flex items-center gap-3">
+                        <div style={{
+                          background: '#7289da',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <TeamOutlined style={{ color: '#ffffff', fontSize: '16px' }} />
+                        </div>
+                        <div>
+                          <div style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>
+                            {filteredStudents.length} aluno{filteredStudents.length !== 1 ? 's' : ''}
+                          </div>
+                          <div style={{ color: '#b9bbbe', fontSize: '12px' }}>
+                            {searchTerm || filterBelt ? 'Filtrado' + (filteredStudents.length !== 1 ? 's' : '') : 'Total'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1507,21 +1719,414 @@ export default function ProfessorDashboard() {
                       <Button
                         type="primary"
                         icon={<EyeOutlined />}
-                        onClick={() => {
-                          Modal.info({
-                            title: `Detalhes de ${student.name}`,
-                            content: (
-                              <div style={{ color: '#ffffff' }}>
-                                <p><strong>Email:</strong> {student.email}</p>
-                                <p><strong>Faixa:</strong> {student.belt}</p>
-                                <p><strong>Total de Check-ins:</strong> {student.totalCheckIns}</p>
-                                <p><strong>Check-ins Aprovados:</strong> {student.approvedCheckIns}</p>
-                                <p><strong>Taxa de Frequência:</strong> {student.attendanceRate.toFixed(1)}%</p>
-                              </div>
-                            ),
-                            okText: 'Fechar',
-                            okButtonProps: { style: { background: '#7289da', borderColor: '#7289da' } }
-                          })
+                        onClick={async () => {
+                          try {
+                            // Buscar dados completos do aluno
+                            const token = localStorage.getItem('token')
+                            const response = await fetch(`/api/users/${student.id}`, {
+                              headers: { Authorization: `Bearer ${token}` }
+                            })
+                            
+                            let fullStudentData = null
+                            if (response.ok) {
+                              fullStudentData = await response.json()
+                            }
+
+                            // Calcular idade se birthDate existir
+                            const calculateAge = (birthDate: string) => {
+                              if (!birthDate) return 'Não informado'
+                              const today = new Date()
+                              const birth = new Date(birthDate)
+                              let age = today.getFullYear() - birth.getFullYear()
+                              const monthDiff = today.getMonth() - birth.getMonth()
+                              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                                age--
+                              }
+                              return `${age} anos`
+                            }
+
+                            Modal.info({
+                              title: `📋 Detalhes de ${student.name}`,
+                              width: 600,
+                              content: (
+                                <div style={{ color: '#ffffff', fontSize: '14px' }}>
+                                  {/* Informações Básicas */}
+                                  <div style={{ 
+                                    background: '#2f3136', 
+                                    padding: '16px', 
+                                    borderRadius: '8px', 
+                                    marginBottom: '16px',
+                                    border: '1px solid #5c6370'
+                                  }}>
+                                    <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                                      📊 Informações Básicas
+                                    </h4>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                      <div>
+                                        <strong style={{ color: '#b9bbbe' }}>📧 Email:</strong>
+                                        <div style={{ 
+                                          color: '#ffffff', 
+                                          marginTop: '4px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between'
+                                        }}>
+                                          <span>{student.email}</span>
+                                          <Button
+                                            type="text"
+                                            size="small"
+                                            icon={<CopyOutlined />}
+                                            style={{ 
+                                              color: '#7289da',
+                                              padding: '0 4px',
+                                              minWidth: 'auto',
+                                              height: 'auto'
+                                            }}
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(student.email)
+                                              message.success('Email copiado!')
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <strong style={{ color: '#b9bbbe' }}>🥋 Faixa:</strong>
+                                        <div style={{ 
+                                          color: '#ffffff', 
+                                          marginTop: '4px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between'
+                                        }}>
+                                          <span>{student.belt}</span>
+                                          <Button
+                                            type="text"
+                                            size="small"
+                                            icon={<CopyOutlined />}
+                                            style={{ 
+                                              color: '#7289da',
+                                              padding: '0 4px',
+                                              minWidth: 'auto',
+                                              height: 'auto'
+                                            }}
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(student.belt)
+                                              message.success('Faixa copiada!')
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <strong style={{ color: '#b9bbbe' }}>🎂 Idade:</strong>
+                                        <div style={{ 
+                                          color: '#ffffff', 
+                                          marginTop: '4px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between'
+                                        }}>
+                                          <span>
+                                            {fullStudentData?.birthDate ? calculateAge(fullStudentData.birthDate) : 'Não informado'}
+                                          </span>
+                                          {fullStudentData?.birthDate && (
+                                            <Button
+                                              type="text"
+                                              size="small"
+                                              icon={<CopyOutlined />}
+                                              style={{ 
+                                                color: '#7289da',
+                                                padding: '0 4px',
+                                                minWidth: 'auto',
+                                                height: 'auto'
+                                              }}
+                                              onClick={() => {
+                                                const age = calculateAge(fullStudentData.birthDate)
+                                                navigator.clipboard.writeText(age.toString())
+                                                message.success('Idade copiada!')
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <strong style={{ color: '#b9bbbe' }}>⚖️ Peso:</strong>
+                                        <div style={{ 
+                                          color: '#ffffff', 
+                                          marginTop: '4px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between'
+                                        }}>
+                                          <span>
+                                            {fullStudentData?.weight ? `${fullStudentData.weight} kg` : 'Não informado'}
+                                          </span>
+                                          {fullStudentData?.weight && (
+                                            <Button
+                                              type="text"
+                                              size="small"
+                                              icon={<CopyOutlined />}
+                                              style={{ 
+                                                color: '#7289da',
+                                                padding: '0 4px',
+                                                minWidth: 'auto',
+                                                height: 'auto'
+                                              }}
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(`${fullStudentData.weight} kg`)
+                                                message.success('Peso copiado!')
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Contato */}
+                                  <div style={{ 
+                                    background: '#2f3136', 
+                                    padding: '16px', 
+                                    borderRadius: '8px', 
+                                    marginBottom: '16px',
+                                    border: '1px solid #5c6370'
+                                  }}>
+                                    <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                                      📞 Contato e Endereço
+                                    </h4>
+                                    <div style={{ display: 'grid', gap: '12px' }}>
+                                      <div>
+                                        <strong style={{ color: '#b9bbbe' }}>🚨 Contato de Emergência:</strong>
+                                        <div style={{ color: '#ffffff', marginTop: '4px' }}>
+                                          {fullStudentData?.emergencyContact ? (
+                                            <>
+                                              <div style={{ 
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                marginBottom: '4px'
+                                              }}>
+                                                <span>{fullStudentData.emergencyContact}</span>
+                                                <Button
+                                                  type="text"
+                                                  size="small"
+                                                  icon={<CopyOutlined />}
+                                                  style={{ 
+                                                    color: '#7289da',
+                                                    padding: '0 4px',
+                                                    minWidth: 'auto',
+                                                    height: 'auto'
+                                                  }}
+                                                  onClick={() => {
+                                                    navigator.clipboard.writeText(fullStudentData.emergencyContact)
+                                                    message.success('Contato de emergência copiado!')
+                                                  }}
+                                                />
+                                              </div>
+                                              {fullStudentData.emergencyPhone && (
+                                                <div style={{ 
+                                                  color: '#43b581', 
+                                                  fontWeight: '500',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'space-between'
+                                                }}>
+                                                  <span>📱 {fullStudentData.emergencyPhone}</span>
+                                                  <Button
+                                                    type="text"
+                                                    size="small"
+                                                    icon={<CopyOutlined />}
+                                                    style={{ 
+                                                      color: '#7289da',
+                                                      padding: '0 4px',
+                                                      minWidth: 'auto',
+                                                      height: 'auto'
+                                                    }}
+                                                    onClick={() => {
+                                                      navigator.clipboard.writeText(fullStudentData.emergencyPhone)
+                                                      message.success('Telefone de emergência copiado!')
+                                                    }}
+                                                  />
+                                                </div>
+                                              )}
+                                            </>
+                                          ) : 'Não informado'}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <strong style={{ color: '#b9bbbe' }}>🏠 Endereço:</strong>
+                                        <div style={{ 
+                                          color: '#ffffff', 
+                                          marginTop: '4px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between'
+                                        }}>
+                                          <span style={{ flex: 1, marginRight: '8px' }}>
+                                            {fullStudentData?.address || 'Não informado'}
+                                          </span>
+                                          {fullStudentData?.address && (
+                                            <Button
+                                              type="text"
+                                              size="small"
+                                              icon={<CopyOutlined />}
+                                              style={{ 
+                                                color: '#7289da',
+                                                padding: '0 4px',
+                                                minWidth: 'auto',
+                                                height: 'auto'
+                                              }}
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(fullStudentData.address)
+                                                message.success('Endereço copiado!')
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Performance */}
+                                  <div style={{ 
+                                    background: '#2f3136', 
+                                    padding: '16px', 
+                                    borderRadius: '8px',
+                                    border: '1px solid #5c6370'
+                                  }}>
+                                    <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                                      📈 Performance e Frequência
+                                    </h4>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                      <div style={{ textAlign: 'center' }}>
+                                        <strong style={{ color: '#b9bbbe' }}>Total Check-ins</strong>
+                                        <div style={{ 
+                                          color: '#ffffff', 
+                                          fontSize: '20px', 
+                                          fontWeight: 'bold',
+                                          marginTop: '4px'
+                                        }}>
+                                          {student.totalCheckIns}
+                                        </div>
+                                      </div>
+                                      <div style={{ textAlign: 'center' }}>
+                                        <strong style={{ color: '#b9bbbe' }}>Aprovados</strong>
+                                        <div style={{ 
+                                          color: '#52c41a', 
+                                          fontSize: '20px', 
+                                          fontWeight: 'bold',
+                                          marginTop: '4px'
+                                        }}>
+                                          {student.approvedCheckIns}
+                                        </div>
+                                      </div>
+                                      <div style={{ textAlign: 'center' }}>
+                                        <strong style={{ color: '#b9bbbe' }}>Frequência</strong>
+                                        <div style={{ 
+                                          color: student.attendanceRate >= 90 ? '#52c41a' : 
+                                                student.attendanceRate >= 80 ? '#faad14' : '#ff4d4f',
+                                          fontSize: '20px', 
+                                          fontWeight: 'bold',
+                                          marginTop: '4px'
+                                        }}>
+                                          {student.attendanceRate.toFixed(1)}%
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ),
+                              okText: 'Fechar',
+                              okButtonProps: { 
+                                style: { 
+                                  background: '#7289da', 
+                                  borderColor: '#7289da',
+                                  height: '40px',
+                                  fontSize: '14px'
+                                } 
+                              },
+                              footer: (
+                                <div style={{ 
+                                  display: 'flex', 
+                                  gap: '8px', 
+                                  justifyContent: 'center',
+                                  flexWrap: 'wrap',
+                                  padding: '8px 0'
+                                }}>
+                                  <Button
+                                     key="copy-all"
+                                     icon={<CopyOutlined />}
+                                     style={{ 
+                                       background: '#43b581', 
+                                       borderColor: '#43b581',
+                                       color: '#ffffff',
+                                       height: '44px',
+                                       fontSize: '16px',
+                                       minWidth: '120px',
+                                       flex: '1',
+                                       maxWidth: '150px',
+                                       borderRadius: '8px',
+                                       fontWeight: '500'
+                                     }}
+                                    onClick={() => {
+                                      const allInfo = [
+                                        `Nome: ${student.name}`,
+                                        `Email: ${student.email}`,
+                                        `Faixa: ${student.belt}`,
+                                        fullStudentData?.birthDate ? `Idade: ${calculateAge(fullStudentData.birthDate)}` : null,
+                                        fullStudentData?.weight ? `Peso: ${fullStudentData.weight} kg` : null,
+                                        fullStudentData?.emergencyContact ? `Contato de Emergência: ${fullStudentData.emergencyContact}` : null,
+                                        fullStudentData?.emergencyPhone ? `Telefone de Emergência: ${fullStudentData.emergencyPhone}` : null,
+                                        fullStudentData?.address ? `Endereço: ${fullStudentData.address}` : null,
+                                        `Total Check-ins: ${student.totalCheckIns}`,
+                                        `Check-ins Aprovados: ${student.approvedCheckIns}`,
+                                        `Frequência: ${student.attendanceRate.toFixed(1)}%`
+                                      ].filter(Boolean).join('\n')
+                                      
+                                      navigator.clipboard.writeText(allInfo)
+                                      message.success('Todas as informações copiadas!')
+                                    }}
+                                  >
+                                    Copiar Tudo
+                                  </Button>
+                                  <Button
+                                     key="close"
+                                     style={{ 
+                                       background: '#7289da', 
+                                       borderColor: '#7289da',
+                                       color: '#ffffff',
+                                       height: '44px',
+                                       fontSize: '16px',
+                                       minWidth: '80px',
+                                       flex: '1',
+                                       maxWidth: '100px',
+                                       borderRadius: '8px',
+                                       fontWeight: '500'
+                                     }}
+                                    onClick={() => Modal.destroyAll()}
+                                  >
+                                    Fechar
+                                  </Button>
+                                </div>
+                              )
+                            })
+                          } catch (error) {
+                            console.error('Erro ao carregar detalhes do aluno:', error)
+                            // Fallback para o modal simples
+                            Modal.info({
+                              title: `Detalhes de ${student.name}`,
+                              content: (
+                                <div style={{ color: '#ffffff' }}>
+                                  <p><strong>Email:</strong> {student.email}</p>
+                                  <p><strong>Faixa:</strong> {student.belt}</p>
+                                  <p><strong>Total de Check-ins:</strong> {student.totalCheckIns}</p>
+                                  <p><strong>Check-ins Aprovados:</strong> {student.approvedCheckIns}</p>
+                                  <p><strong>Taxa de Frequência:</strong> {student.attendanceRate.toFixed(1)}%</p>
+                                </div>
+                              ),
+                              okText: 'Fechar',
+                              okButtonProps: { style: { background: '#7289da', borderColor: '#7289da' } }
+                            })
+                          }
                         }}
                         style={{ 
                           width: '100%',
@@ -2080,6 +2685,29 @@ export default function ProfessorDashboard() {
           }
           .ant-statistic-content {
             font-size: 18px !important;
+          }
+          
+          /* Melhorar layout dos modais em mobile */
+          .ant-modal {
+            margin: 16px !important;
+            max-width: calc(100vw - 32px) !important;
+          }
+          
+          .ant-modal-content {
+            border-radius: 12px !important;
+          }
+          
+          .ant-modal-footer {
+            padding: 16px 24px !important;
+            border-top: 1px solid #5c6370 !important;
+          }
+          
+          /* Botões do modal responsivos */
+          .ant-modal-footer .ant-btn {
+            height: 44px !important;
+            font-size: 16px !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
           }
         }
       `}</style>
