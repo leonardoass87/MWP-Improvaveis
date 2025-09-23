@@ -101,6 +101,14 @@ tmp/
 *.sqlite
 *.sqlite3
 
+# PostgreSQL data directory (Docker volume)
+postgres_data/
+pgdata/
+
+# Docker files
+docker-compose.override.yml
+.dockerignore
+
 # Backup files
 *.bak
 *.backup
@@ -115,3 +123,73 @@ storybook-static
 # Temporary folders
 temp-users.json
 /generated/prisma
+
+# Security and sensitive files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.env.example.local
+secrets/
+credentials/
+
+# Build artifacts
+.turbo/
+.swc/
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Prisma
+prisma/dev.db*
+prisma/*.db*
+
+# Local development files
+.local/
+local/
+dev-data/
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Editor backups
+*~
+*.swp
+*.swo
+.#*
+\#*#
+
+# Package manager locks (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# Runtime and process files
+*.pid
+*.seed
+*.pid.lock
+.pm2/
+
+# Miscellaneous
+*.tgz
+*.tar.gz
+*.zip
+*.rar
+*.7z
