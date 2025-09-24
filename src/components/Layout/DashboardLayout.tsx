@@ -292,7 +292,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
             open={mobileMenuVisible}
             onOpenChange={setMobileMenuVisible}
             placement="bottomRight"
-            dropdownRender={() => (
+            popupRender={() => (
               <div className="bg-black/95 backdrop-blur-md border border-gray-800 rounded-xl shadow-2xl p-0 min-w-[280px] overflow-hidden">
                 <div className="p-6 border-b border-gray-800/50 bg-gradient-to-r from-gray-900 to-black">
                   <div className="flex items-center space-x-4">

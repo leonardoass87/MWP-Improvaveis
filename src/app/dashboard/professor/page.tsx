@@ -294,6 +294,32 @@ export default function ProfessorDashboard() {
     return colors[belt] || '#ffffff'
   }
 
+  const getTimeUntilExpiration = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const expirationTime = new Date(created.getTime() + (72 * 60 * 60 * 1000)) // 72 horas
+    const now = new Date()
+    const timeLeft = expirationTime.getTime() - now.getTime()
+    
+    if (timeLeft <= 0) {
+      return { expired: true, timeLeft: 0, text: 'Expirado', color: 'red' }
+    }
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
+    
+    // Determinar cor baseada no tempo restante
+    let color = 'green'
+    if (hours < 12) color = 'red'
+    else if (hours < 24) color = 'orange'
+    
+    return {
+      expired: false,
+      timeLeft,
+      text: `${hours}h ${minutes}m`,
+      color
+    }
+  }
+
   const handleApproveCheckIn = async (checkInId: number) => {
     try {
       const token = localStorage.getItem('token')
@@ -542,6 +568,19 @@ export default function ProfessorDashboard() {
       dataIndex: 'status',
       key: 'status',
       render: () => <Tag color="orange">Pendente</Tag>
+    },
+    {
+      title: 'Tempo Restante',
+      dataIndex: 'createdAt',
+      key: 'timeLeft',
+      render: (createdAt: string) => {
+        const timeInfo = getTimeUntilExpiration(createdAt)
+        return (
+          <Tag color={timeInfo.color}>
+            {timeInfo.expired ? '⏰ Expirado' : `⏱️ ${timeInfo.text}`}
+          </Tag>
+        )
+      }
     },
     {
       title: 'Ações',
@@ -1290,7 +1329,7 @@ export default function ProfessorDashboard() {
                       </Tag>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="grid grid-cols-3 gap-3 mb-4">
                       <div>
                         <Text style={{ color: '#b9bbbe', fontSize: '12px', display: 'block' }}>
                           Data
@@ -1306,6 +1345,19 @@ export default function ProfessorDashboard() {
                         <Text style={{ color: '#ffffff', fontSize: '14px' }}>
                           {checkIn.time}
                         </Text>
+                      </div>
+                      <div>
+                        <Text style={{ color: '#b9bbbe', fontSize: '12px', display: 'block' }}>
+                          Tempo Restante
+                        </Text>
+                        {(() => {
+                          const timeInfo = getTimeUntilExpiration(checkIn.createdAt)
+                          return (
+                            <Tag color={timeInfo.color} style={{ margin: 0, fontSize: '11px' }}>
+                              {timeInfo.expired ? '⏰ Expirado' : `⏱️ ${timeInfo.text}`}
+                            </Tag>
+                          )
+                        })()}
                       </div>
                     </div>
 

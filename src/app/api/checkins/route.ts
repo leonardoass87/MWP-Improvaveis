@@ -17,6 +17,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
     }
 
+    // Primeiro, expirar check-ins pendentes que passaram de 72 horas
+    const seventyTwoHoursAgo = new Date()
+    seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
+
+    await prisma.checkin.updateMany({
+      where: {
+        status: 'pending',
+        createdAt: {
+          lt: seventyTwoHoursAgo
+        }
+      },
+      data: {
+        status: 'rejected',
+        approvedBy: null, // Sistema automático
+        approvedAt: new Date()
+      }
+    })
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const date = searchParams.get('date')
@@ -129,6 +147,7 @@ export async function POST(request: NextRequest) {
     const approvedCheckIns = userCheckIns.filter(c => c.status === 'approved')
     let consecutiveAbsences = 0
     
+    // Se não tem check-ins aprovados, não há faltas (aluno novo)
     if (approvedCheckIns.length > 0) {
       const lastCheckIn = new Date(approvedCheckIns[0].date)
       const today = new Date()
@@ -136,7 +155,8 @@ export async function POST(request: NextRequest) {
       
       if (daysSinceLastCheckIn > 3) {
         const weeksSinceLastCheckIn = daysSinceLastCheckIn / 7
-        consecutiveAbsences = Math.floor(weeksSinceLastCheckIn * 2) // 2 treinos por semana
+        consecutiveAbsences = Math.floor(weeksSinceLastCheckIn * 3) // 3 treinos por semana
+        consecutiveAbsences = Math.min(consecutiveAbsences, 6) // Máximo de 6 faltas
       }
     }
 
@@ -159,15 +179,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Adicionar alertas baseados nas faltas consecutivas
-    if (consecutiveAbsences >= 2) {
+    if (consecutiveAbsences >= 4) {
       response.warning = {
-        type: consecutiveAbsences >= 3 ? 'critical' : 'warning',
-        message: consecutiveAbsences >= 3 
+        type: consecutiveAbsences >= 6 ? 'critical' : 'warning',
+        message: consecutiveAbsences >= 6 
           ? `Atenção! Você teve ${consecutiveAbsences} faltas consecutivas. Risco de desativação.`
           : `Você teve ${consecutiveAbsences} faltas consecutivas. Mantenha a frequência!`,
         consecutiveAbsences
       }
-    } else if (consecutiveAbsences === 1) {
+    } else if (consecutiveAbsences >= 1) {
       response.info = {
         message: 'Que bom te ver de volta! Mantenha a frequência regular.',
         consecutiveAbsences

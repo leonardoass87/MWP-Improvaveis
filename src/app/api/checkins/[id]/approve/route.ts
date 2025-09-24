@@ -48,6 +48,26 @@ export async function PUT(
       }, { status: 404 })
     }
 
+    // Verificar se o check-in não expirou (72 horas)
+    const seventyTwoHoursAgo = new Date()
+    seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
+
+    if (checkIn.createdAt < seventyTwoHoursAgo) {
+      // Expirar automaticamente
+      await prisma.checkin.update({
+        where: { id: checkInId },
+        data: {
+          status: 'rejected',
+          approvedBy: null, // Sistema automático
+          approvedAt: new Date()
+        }
+      })
+
+      return NextResponse.json({ 
+        error: 'Check-in expirado. O prazo de 72 horas para aprovação foi ultrapassado.' 
+      }, { status: 400 })
+    }
+
     // Atualizar status do check-in
     await prisma.checkin.update({
       where: { id: checkInId },

@@ -12,15 +12,10 @@ function calculateConsecutiveAbsences(checkIns: any[], expectedTrainingDays: num
     .filter(c => c.status === 'approved')
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
+  // Se não tem nenhum check-in aprovado, retornar 0 faltas
+  // Um aluno novo não deveria ter faltas no primeiro dia
   if (sortedCheckIns.length === 0) {
-    // Se não tem nenhum check-in aprovado, calcular desde o início do mês
-    const today = new Date()
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const daysSinceStart = Math.floor((today.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24))
-    
-    // Estimar faltas baseado na frequência esperada (2 treinos por semana)
-    const expectedTrainings = Math.floor((daysSinceStart / 7) * expectedTrainingDays)
-    return Math.min(expectedTrainings, 10) // Máximo de 10 faltas para evitar números absurdos
+    return 0
   }
 
   // Calcular dias desde o último check-in aprovado
@@ -30,10 +25,10 @@ function calculateConsecutiveAbsences(checkIns: any[], expectedTrainingDays: num
 
   // Se passou mais de 3 dias sem check-in, considerar como faltas consecutivas
   if (daysSinceLastCheckIn > 3) {
-    // Calcular faltas baseado na frequência esperada
+    // Calcular faltas baseado na frequência esperada (3 treinos por semana)
     const weeksSinceLastCheckIn = daysSinceLastCheckIn / 7
-    const expectedTrainings = Math.floor(weeksSinceLastCheckIn * expectedTrainingDays)
-    return Math.min(expectedTrainings, 10) // Máximo de 10 faltas
+    const expectedTrainings = Math.floor(weeksSinceLastCheckIn * 3) // 3 treinos por semana
+    return Math.min(expectedTrainings, 6) // Máximo de 6 faltas para desativação
   }
 
   return 0
@@ -61,10 +56,10 @@ function calculateStudentAbsenceStats(student: any) {
   let status = 'active'
   let statusMessage = 'Aluno ativo'
   
-  if (consecutiveAbsences >= 3) {
+  if (consecutiveAbsences >= 6) {
     status = 'at_risk'
     statusMessage = `${consecutiveAbsences} faltas consecutivas - Risco de desativação`
-  } else if (consecutiveAbsences >= 2) {
+  } else if (consecutiveAbsences >= 4) {
     status = 'warning'
     statusMessage = `${consecutiveAbsences} faltas consecutivas - Atenção necessária`
   } else if (monthlyFrequency < 50) {
@@ -258,8 +253,8 @@ export async function POST(request: NextRequest) {
 
     const absenceStats = calculateStudentAbsenceStats(student)
 
-    // Verificar se realmente tem 3 ou mais faltas consecutivas
-    if (absenceStats.absenceStats.consecutiveAbsences < 3) {
+    // Verificar se realmente tem 6 ou mais faltas consecutivas
+    if (absenceStats.absenceStats.consecutiveAbsences < 6) {
       return NextResponse.json({ 
         error: 'Aluno não tem faltas suficientes para desativação automática',
         consecutiveAbsences: absenceStats.absenceStats.consecutiveAbsences

@@ -23,12 +23,10 @@ function calculateConsecutiveAbsences(checkIns: any[], expectedTrainingDays: num
     .filter(c => c.status === 'approved')
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
+  // Se não tem nenhum check-in aprovado, retornar 0 faltas
+  // Um aluno novo não deveria ter faltas no primeiro dia
   if (sortedCheckIns.length === 0) {
-    const today = new Date()
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const daysSinceStart = Math.floor((today.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24))
-    const expectedTrainings = Math.floor((daysSinceStart / 7) * expectedTrainingDays)
-    return Math.min(expectedTrainings, 10)
+    return 0
   }
 
   const lastCheckIn = new Date(sortedCheckIns[0].date)
@@ -36,9 +34,10 @@ function calculateConsecutiveAbsences(checkIns: any[], expectedTrainingDays: num
   const daysSinceLastCheckIn = Math.floor((today.getTime() - lastCheckIn.getTime()) / (1000 * 60 * 60 * 24))
 
   if (daysSinceLastCheckIn > 3) {
+    // Calcular faltas baseado na frequência esperada (3 treinos por semana)
     const weeksSinceLastCheckIn = daysSinceLastCheckIn / 7
-    const expectedTrainings = Math.floor(weeksSinceLastCheckIn * expectedTrainingDays)
-    return Math.min(expectedTrainings, 10)
+    const expectedTrainings = Math.floor(weeksSinceLastCheckIn * 3) // 3 treinos por semana
+    return Math.min(expectedTrainings, 6) // Máximo de 6 faltas para desativação
   }
 
   return 0
@@ -87,7 +86,7 @@ export async function POST(request: NextRequest) {
     for (const student of activeStudents) {
       const consecutiveAbsences = calculateConsecutiveAbsences(student.checkins)
       
-      if (consecutiveAbsences >= 3) {
+      if (consecutiveAbsences >= 6) {
         studentsToDeactivate.push({
           id: student.id,
           name: student.name,
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest) {
           consecutiveAbsences,
           lastCheckIn: student.checkins.find(c => c.status === 'approved')?.date || null
         })
-      } else if (consecutiveAbsences >= 2) {
+      } else if (consecutiveAbsences >= 4) {
         studentsAtRisk.push({
           id: student.id,
           name: student.name,
@@ -106,7 +105,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Desativar alunos com 3+ faltas consecutivas
+    // Desativar alunos com 6+ faltas consecutivas
     const deactivatedStudents = []
     for (const student of studentsToDeactivate) {
       try {

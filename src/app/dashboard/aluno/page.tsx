@@ -40,6 +40,7 @@ export default function AlunoDashboard() {
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false)
   const [absenceData, setAbsenceData] = useState<AbsenceStats | null>(null)
   const [checkInAlert, setCheckInAlert] = useState<any>(null)
+  const [todayCheckInStatus, setTodayCheckInStatus] = useState<CheckInWithUser | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -83,6 +84,7 @@ export default function AlunoDashboard() {
         // Verificar se já fez check-in hoje
         const userCheckIn = checkInsData.find((c: CheckInWithUser) => c.userId === userId)
         setHasCheckedInToday(!!userCheckIn)
+        setTodayCheckInStatus(userCheckIn || null)
       }
 
       // Carregar dados de faltas do aluno
@@ -178,6 +180,26 @@ export default function AlunoDashboard() {
       preta: 'black',
     }
     return colors[belt as keyof typeof colors] || 'default'
+  }
+
+  const getTimeUntilExpiration = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const expirationTime = new Date(created.getTime() + (72 * 60 * 60 * 1000)) // 72 horas
+    const now = new Date()
+    const timeLeft = expirationTime.getTime() - now.getTime()
+    
+    if (timeLeft <= 0) {
+      return { expired: true, timeLeft: 0, text: 'Expirado' }
+    }
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
+    
+    return {
+      expired: false,
+      timeLeft,
+      text: `${hours}h ${minutes}m restantes`
+    }
   }
 
   const studentsColumns = [
@@ -464,15 +486,59 @@ export default function AlunoDashboard() {
               className="bg-discord-dark border-gray-700"
             >
               <div className="text-center">
-                {hasCheckedInToday ? (
+                {hasCheckedInToday && todayCheckInStatus ? (
                   <div>
-                    <CheckCircleOutlined className="text-green-500 text-4xl mb-4" />
-                    <Title level={4} className="text-green-500 mb-2">
-                      Check-in Realizado!
-                    </Title>
-                    <Text className="text-gray-400">
-                      Você já fez check-in hoje. Aguarde a aprovação do professor.
-                    </Text>
+                    {todayCheckInStatus.status === 'approved' && (
+                      <>
+                        <CheckCircleOutlined className="text-green-500 text-4xl mb-4" />
+                        <Title level={4} className="text-green-500 mb-2">
+                          Check-in Aprovado!
+                        </Title>
+                        <Text className="text-gray-400">
+                          Seu check-in foi aprovado pelo professor.
+                        </Text>
+                      </>
+                    )}
+                    {todayCheckInStatus.status === 'pending' && (
+                      <>
+                        <ClockCircleOutlined className="text-orange-500 text-4xl mb-4" />
+                        <Title level={4} className="text-orange-500 mb-2">
+                          Check-in Pendente
+                        </Title>
+                        <div className="space-y-2">
+                          <Text className="text-gray-400 block">
+                            Aguardando aprovação do professor
+                          </Text>
+                          {(() => {
+                            const timeInfo = getTimeUntilExpiration(todayCheckInStatus.createdAt.toISOString())
+                            return (
+                              <div className="mt-3">
+                                {timeInfo.expired ? (
+                                  <Tag color="red" className="text-sm">
+                                    ⏰ Expirado - Será rejeitado automaticamente
+                                  </Tag>
+                                ) : (
+                                  <Tag color="orange" className="text-sm">
+                                    ⏱️ {timeInfo.text} para aprovação
+                                  </Tag>
+                                )}
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      </>
+                    )}
+                    {todayCheckInStatus.status === 'rejected' && (
+                      <>
+                        <ExclamationCircleOutlined className="text-red-500 text-4xl mb-4" />
+                        <Title level={4} className="text-red-500 mb-2">
+                          Check-in Rejeitado
+                        </Title>
+                        <Text className="text-gray-400">
+                          Seu check-in foi rejeitado ou expirou.
+                        </Text>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -489,6 +555,11 @@ export default function AlunoDashboard() {
                     >
                       Registrar Presença
                     </Button>
+                    <div className="mt-3">
+                      <Text className="text-gray-500 text-sm">
+                        💡 Você tem 72 horas para aprovação após o check-in
+                      </Text>
+                    </div>
                   </div>
                 )}
               </div>
