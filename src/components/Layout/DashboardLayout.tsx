@@ -184,14 +184,18 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
             background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
             borderRight: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <div className="p-6 border-b border-gray-700/50">
+          {/* Header do usuário */}
+          <div className="p-6 border-b border-gray-700/50 flex-shrink-0">
             <div className="flex items-center space-x-4">
               <Avatar 
                 size={56} 
                 src={currentUser?.avatar} 
-                className="border-2 border-white/20"
+                className="border-2 border-white/20 flex-shrink-0"
               >
                 {currentUser?.name?.charAt(0).toUpperCase()}
               </Avatar>
@@ -221,21 +225,26 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
             </div>
           </div>
 
-          <Menu
-            theme="dark"
-            mode="inline"
-            selectedKeys={[pathname]}
-            items={getMenuItems()}
-            onClick={({ key }) => router.push(key)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              fontSize: '16px',
-            }}
-            className="mt-4"
-          />
+          {/* Menu de navegação */}
+          <div className="flex-1 overflow-y-auto">
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={[pathname]}
+              items={getMenuItems()}
+              onClick={({ key }) => router.push(key)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                height: '100%',
+              }}
+              className="mt-4 px-2"
+            />
+          </div>
 
-          <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-700/50">
+          {/* Footer com botões de ação */}
+          <div className="p-4 border-t border-gray-700/50 flex-shrink-0 space-y-2">
             <Dropdown
               menu={{ items: userMenuItems }}
               placement="topRight"
@@ -243,32 +252,31 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
             >
               <Button
                 type="text"
-                className="w-full text-left text-white hover:text-blue-300 hover:bg-blue-500/10 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                className="w-full text-left text-white hover:text-blue-300 hover:bg-blue-500/10 rounded-lg px-3 py-2.5 h-auto flex items-center space-x-3 transition-all duration-200"
               >
-                <Avatar size={32} src={currentUser?.avatar}>
-                  {currentUser?.name?.charAt(0).toUpperCase()}
-                </Avatar>
+                <EditOutlined className="text-lg flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{currentUser?.name}</div>
+                  <div className="text-sm font-medium">Editar Perfil</div>
                   <div className="text-xs text-gray-400">Configurações</div>
                 </div>
               </Button>
             </Dropdown>
             
-            {/* Botão de Logout separado */}
+            {/* Botão de Logout */}
             <Button
               type="text"
               onClick={handleLogout}
-              className="w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200 mt-2"
+              className="w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-3 py-2.5 h-auto flex items-center space-x-3 transition-all duration-200"
             >
-              <LogoutOutlined className="text-lg" />
+              <LogoutOutlined className="text-lg flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium">Sair</div>
                 <div className="text-xs text-gray-400">Fazer logout</div>
               </div>
             </Button>
             
-            <div className="text-center text-gray-500 text-xs mt-4">
+            {/* Versão */}
+            <div className="text-center text-gray-500 text-xs mt-3 pt-2 border-t border-gray-700/30">
               Versão {version}
             </div>
           </div>
@@ -433,12 +441,16 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
 
       <Content
         style={{
-          padding: isMobile ? '16px' : '24px',
+          padding: isMobile ? '16px' : '32px 40px',
           background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
           minHeight: '100vh',
+          overflow: 'auto',
         }}
+        className={isMobile ? '' : 'max-w-none'}
       >
-        {children}
+        <div className={isMobile ? '' : 'max-w-7xl mx-auto'}>
+          {children}
+        </div>
       </Content>
 
       <ProfileModal
