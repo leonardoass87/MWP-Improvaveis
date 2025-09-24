@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Input, Select, Button, message, Row, Col, Typography } from 'antd'
+import { Modal, Form, Input, Select, Button, Row, Col, Typography, App } from 'antd'
 import { UserOutlined, SaveOutlined } from '@ant-design/icons'
 import { AuthUser } from '@/types'
 import InputMask from 'react-input-mask'
@@ -18,6 +18,7 @@ interface ProfileModalProps {
 }
 
 export default function ProfileModal({ visible, onClose, user, onUpdate }: ProfileModalProps) {
+  const { message } = App.useApp()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string>('')

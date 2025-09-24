@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu, Avatar, Dropdown, Button, message } from 'antd'
+import { Layout, Menu, Avatar, Dropdown, Button, App } from 'antd'
 import {
   DashboardOutlined,
   UserOutlined,
@@ -10,7 +10,8 @@ import {
   MenuOutlined,
   TrophyOutlined,
   CrownOutlined,
-  StarOutlined
+  StarOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthUser } from '@/types'
@@ -24,6 +25,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children, user }: DashboardLayoutProps) {
+  const { message } = App.useApp()
   const [isMobile, setIsMobile] = useState(false)
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false)
   const [profileModalVisible, setProfileModalVisible] = useState(false)
@@ -423,6 +425,16 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   >
                     <span>Sair da Conta</span>
                   </Button>
+                  
+                  {/* Versão do Sistema */}
+                  <div className="mt-4 pt-3 border-t border-gray-700/50">
+                    <div className="px-3 py-2 flex items-center justify-center space-x-2">
+                      <InfoCircleOutlined className="text-gray-500 text-xs" />
+                      <span className="text-gray-400 text-xs font-medium">
+                        Versão {version}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

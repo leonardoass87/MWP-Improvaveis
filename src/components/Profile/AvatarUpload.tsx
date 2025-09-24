@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { Modal, Button, message, Avatar, Slider } from 'antd'
+import { Modal, Button, Avatar, Slider, App } from 'antd'
 import { 
   CameraOutlined, 
   UserOutlined, 
@@ -21,6 +21,7 @@ interface CropData {
 }
 
 export default function AvatarUpload({ currentAvatar, onAvatarChange }: AvatarUploadProps) {
+  const { message } = App.useApp()
   const [previewVisible, setPreviewVisible] = useState(false)
   const [originalImage, setOriginalImage] = useState('')
   const [cropData, setCropData] = useState({ x: 0, y: 0, scale: 1 })

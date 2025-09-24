@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Typography, Row, Col, Avatar, Tag, Spin, Statistic, Button, message } from 'antd'
+import { Card, Typography, Row, Col, Avatar, Tag, Spin, Statistic, Button, App } from 'antd'
 import { TeamOutlined, CalendarOutlined, TrophyOutlined, ArrowLeftOutlined, UserOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
@@ -30,6 +30,7 @@ interface StatsData {
 }
 
 export default function RankingAluno() {
+  const { message } = App.useApp()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [alunosFrequentes, setAlunosFrequentes] = useState<StudentData[]>([])
   const [stats, setStats] = useState<StatsData>({ totalActiveStudents: 0, averageFrequency: 0, currentUserFrequency: 0 })

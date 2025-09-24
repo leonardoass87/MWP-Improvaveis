@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Alert, Statistic, Progress } from 'antd'
+import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Alert, Statistic, Progress, App } from 'antd'
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, CalendarOutlined, TrophyOutlined, ExclamationCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser, CheckInWithUser, User } from '@/types'
@@ -32,6 +32,7 @@ interface AbsenceStats {
 }
 
 export default function AlunoDashboard() {
+  const { message } = App.useApp()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [checkInLoading, setCheckInLoading] = useState(false)

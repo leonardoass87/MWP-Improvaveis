@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select, Tooltip } from 'antd'
+import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select, Tooltip, App } from 'antd'
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined, CopyOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
@@ -43,6 +43,7 @@ interface StudentStats {
 }
 
 export default function ProfessorDashboard() {
+  const { message } = App.useApp()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentView, setCurrentView] = useState<ProfessorView>(ProfessorView.MENU)

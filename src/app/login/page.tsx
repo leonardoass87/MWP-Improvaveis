@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Form, Input, Button, Card, Typography, message, Spin, Modal } from 'antd'
+import { Form, Input, Button, Card, Typography, Spin, Modal, App } from 'antd'
 import { UserOutlined, LockOutlined, UserAddOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import { LoginCredentials, AuthUser } from '@/types'
@@ -11,6 +11,7 @@ import Image from 'next/image'
 const { Title, Text, Link } = Typography
 
 export default function LoginPage() {
+  const { message } = App.useApp()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [registerModalVisible, setRegisterModalVisible] = useState(false)

@@ -1,16 +1,20 @@
 {
   "name": "mvp-improvaveisbjj",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "build:vercel": "prisma generate && prisma migrate deploy && next build",
+    "build:vercel": "node scripts/auto-version.js patch && prisma generate && prisma migrate deploy && next build",
     "build:simulate": "node scripts/build-vercel-simulation.js",
     "build:local": "node scripts/build-local-vercel.js",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "version:patch": "node scripts/auto-version.js patch",
+    "version:minor": "node scripts/auto-version.js minor",
+    "version:major": "node scripts/auto-version.js major",
+    "version:dev": "node scripts/auto-version.js patch --hash --timestamp"
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",

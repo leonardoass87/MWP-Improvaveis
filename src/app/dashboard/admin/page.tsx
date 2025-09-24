@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Table, Tag, message, Spin, Typography, Row, Col, Statistic, Modal, Form, Select, Input, Tabs } from 'antd'
+import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Statistic, Modal, Form, Select, Input, Tabs, App } from 'antd'
 import { UserOutlined, TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, FileTextOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser } from '@/types'
@@ -34,6 +34,7 @@ interface Post {
 }
 
 export default function AdminDashboard() {
+  const { message } = App.useApp()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState<User[]>([])
