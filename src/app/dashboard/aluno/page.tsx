@@ -37,7 +37,7 @@ export default function AlunoDashboard() {
   const [loading, setLoading] = useState(true)
   const [checkInLoading, setCheckInLoading] = useState(false)
   const [todayCheckIns, setTodayCheckIns] = useState<CheckInWithUser[]>([])
-  const [students, setStudents] = useState<User[]>([])
+
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false)
   const [absenceData, setAbsenceData] = useState<AbsenceStats | null>(null)
   const [checkInAlert, setCheckInAlert] = useState<any>(null)
@@ -82,8 +82,8 @@ export default function AlunoDashboard() {
         const checkInsData = await checkInsResponse.json()
         setTodayCheckIns(checkInsData)
         
-        // Verificar se já fez check-in hoje
-        const userCheckIn = checkInsData.find((c: CheckInWithUser) => c.userId === userId)
+        // Verificar se já fez check-in hoje (apenas pendentes)
+        const userCheckIn = checkInsData.find((c: CheckInWithUser) => c.userId === userId && c.status === 'pending')
         setHasCheckedInToday(!!userCheckIn)
         setTodayCheckInStatus(userCheckIn || null)
       }
@@ -101,27 +101,7 @@ export default function AlunoDashboard() {
         console.error('Erro ao carregar dados de faltas:', await absenceResponse.text())
       }
 
-      // Carregar lista de alunos e filtrar os que fizeram check-in hoje
-      const studentsResponse = await fetch('/api/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      
-      if (studentsResponse.ok && checkInsResponse.ok) {
-        const studentsData = await studentsResponse.json()
-        const checkInsData = await checkInsResponse.json()
-        
-        // Obter IDs dos alunos que fizeram check-in hoje
-        const checkInUserIds = checkInsData.map((checkIn: CheckInWithUser) => checkIn.userId)
-        
-        // Filtrar apenas alunos que fizeram check-in hoje
-        const studentsWithCheckIn = studentsData.filter((user: User) => 
-          user.role === 'student' && 
-          user.active && 
-          checkInUserIds.includes(user.id)
-        )
-        
-        setStudents(studentsWithCheckIn)
-      }
+
     } catch (error) {
       console.error('Error loading data:', error)
       message.error('Erro ao carregar dados')
@@ -183,59 +163,9 @@ export default function AlunoDashboard() {
     return colors[belt as keyof typeof colors] || 'default'
   }
 
-  const getTimeUntilExpiration = (createdAt: string) => {
-    const created = new Date(createdAt)
-    const expirationTime = new Date(created.getTime() + (72 * 60 * 60 * 1000)) // 72 horas
-    const now = new Date()
-    const timeLeft = expirationTime.getTime() - now.getTime()
-    
-    if (timeLeft <= 0) {
-      return { expired: true, timeLeft: 0, text: 'Expirado' }
-    }
-    
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-    
-    return {
-      expired: false,
-      timeLeft,
-      text: `${hours}h ${minutes}m restantes`
-    }
-  }
 
-  const studentsColumns = [
-    {
-      title: 'Nome',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string) => (
-        <div className="flex items-center">
-          <UserOutlined className="mr-2 text-gray-400" />
-          <span className="text-white">{text}</span>
-        </div>
-      ),
-    },
-    {
-      title: 'Faixa',
-      dataIndex: 'belt',
-      key: 'belt',
-      render: (belt: string, record: User) => (
-        <Tag color={getBeltColor(belt)}>
-          {belt} {record.degree}º grau
-        </Tag>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'active',
-      key: 'active',
-      render: (active: boolean) => (
-        <Tag color={active ? 'green' : 'red'}>
-          {active ? 'Ativo' : 'Inativo'}
-        </Tag>
-      ),
-    },
-  ]
+
+
 
   const checkInsColumns = [
     {
@@ -506,27 +436,9 @@ export default function AlunoDashboard() {
                         <Title level={4} className="text-orange-500 mb-2">
                           Check-in Pendente
                         </Title>
-                        <div className="space-y-2">
-                          <Text className="text-gray-400 block">
-                            Aguardando aprovação do professor
-                          </Text>
-                          {(() => {
-                            const timeInfo = getTimeUntilExpiration(todayCheckInStatus.createdAt.toISOString())
-                            return (
-                              <div className="mt-3">
-                                {timeInfo.expired ? (
-                                  <Tag color="red" className="text-sm">
-                                    ⏰ Expirado - Será rejeitado automaticamente
-                                  </Tag>
-                                ) : (
-                                  <Tag color="orange" className="text-sm">
-                                    ⏱️ {timeInfo.text} para aprovação
-                                  </Tag>
-                                )}
-                              </div>
-                            )
-                          })()}
-                        </div>
+                        <Text className="text-gray-400">
+                          Aguardando aprovação do Professor
+                        </Text>
                       </>
                     )}
                     {todayCheckInStatus.status === 'rejected' && (
@@ -556,11 +468,6 @@ export default function AlunoDashboard() {
                     >
                       Registrar Presença
                     </Button>
-                    <div className="mt-3">
-                      <Text className="text-gray-500 text-sm">
-                        💡 Você tem 72 horas para aprovação após o check-in
-                      </Text>
-                    </div>
                   </div>
                 )}
               </div>
@@ -593,27 +500,7 @@ export default function AlunoDashboard() {
             </Card>
           </Col>
 
-          {/* Parceiros de Treino */}
-          <Col xs={24} lg={12}>
-            <Card
-              title={
-                <span className="text-white">
-                  Parceiros de Treino Hoje ({students.length})
-                </span>
-              }
-              className="bg-discord-dark border-gray-700"
-            >
-              <Table
-                dataSource={students}
-                columns={studentsColumns}
-                rowKey="id"
-                pagination={{ pageSize: 5, showSizeChanger: false }}
-                size="small"
-                className="bg-transparent"
-                locale={{ emptyText: 'Nenhum parceiro de treino hoje' }}
-              />
-            </Card>
-          </Col>
+
         </Row>
       </div>
     </DashboardLayout>

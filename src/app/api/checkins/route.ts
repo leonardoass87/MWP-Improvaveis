@@ -150,8 +150,8 @@ export async function POST(request: NextRequest) {
     // Se não tem check-ins aprovados, não há faltas (aluno novo)
     if (approvedCheckIns.length > 0) {
       const lastCheckIn = new Date(approvedCheckIns[0].date)
-      const today = new Date()
-      const daysSinceLastCheckIn = Math.floor((today.getTime() - lastCheckIn.getTime()) / (1000 * 60 * 60 * 24))
+      const currentDate = new Date()
+      const daysSinceLastCheckIn = Math.floor((currentDate.getTime() - lastCheckIn.getTime()) / (1000 * 60 * 60 * 24))
       
       if (daysSinceLastCheckIn > 3) {
         const weeksSinceLastCheckIn = daysSinceLastCheckIn / 7

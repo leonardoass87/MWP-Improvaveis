@@ -33,7 +33,11 @@ export default function RankingAluno() {
   const { message } = App.useApp()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [alunosFrequentes, setAlunosFrequentes] = useState<StudentData[]>([])
-  const [stats, setStats] = useState<StatsData>({ totalActiveStudents: 0, averageFrequency: 0, currentUserFrequency: 0 })
+  const [stats, setStats] = useState<StatsData>({
+    totalActiveStudents: 0,
+    averageFrequency: 0,
+    currentUserFrequency: 0
+  })
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -67,8 +71,8 @@ export default function RankingAluno() {
 
     const loadStudentsData = async () => {
       try {
-
-        const response = await fetch('/api/students/active', {
+        const parsedUser = JSON.parse(userData)
+        const response = await fetch(`/api/students/active?userId=${parsedUser.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -77,8 +81,12 @@ export default function RankingAluno() {
 
         if (response.ok) {
           const data = await response.json()
-          setAlunosFrequentes(data.students)
-          setStats(data.stats)
+          setAlunosFrequentes(data.students || [])
+          setStats({
+            totalActiveStudents: data.totalActiveStudents || 0,
+            averageFrequency: data.averageFrequency || 0,
+            currentUserFrequency: data.currentUserFrequency || 0
+          })
         } else {
           message.error('Erro ao carregar dados dos alunos')
         }
@@ -121,10 +129,10 @@ export default function RankingAluno() {
            </Button>
          </div>
         <Title level={2} className="text-white mb-2">
-          Frequência dos Alunos
+          Alunos por Graduação
         </Title>
         <Text className="text-gray-400">
-          Acompanhe a frequência e compare com seus colegas
+          Veja todos os alunos ativos e compare sua frequência
         </Text>
       </div>
 
@@ -138,31 +146,48 @@ export default function RankingAluno() {
               prefix={<TeamOutlined style={{ color: '#7289da', fontSize: '16px' }} />}
               valueStyle={{ color: '#ffffff', fontSize: '20px' }}
             />
+            <div style={{ marginTop: '8px' }}>
+              <Text style={{ color: '#b9bbbe', fontSize: '11px' }}>
+                Últimos 30 dias
+              </Text>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card style={{ background: '#36393f', border: '1px solid #5c6370' }}>
             <Statistic
-              title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Frequência Média</span>}
+              title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Média Geral da Turma</span>}
               value={stats.averageFrequency}
               suffix="%"
               prefix={<CalendarOutlined style={{ color: '#43b581', fontSize: '16px' }} />}
               valueStyle={{ color: '#43b581', fontSize: '20px' }}
             />
+            <div style={{ marginTop: '8px' }}>
+              <Text style={{ color: '#b9bbbe', fontSize: '11px' }}>
+                Últimos 30 dias
+              </Text>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card style={{ background: '#36393f', border: '1px solid #5c6370' }}>
             <Statistic
-              title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Maior Frequência</span>}
-              value={alunosFrequentes.length > 0 ? Math.max(...alunosFrequentes.map(a => a.frequency)) : 0}
+              title={<span style={{ color: '#b9bbbe', fontSize: '12px' }}>Sua Frequência</span>}
+              value={stats.currentUserFrequency}
               suffix="%"
-              prefix={<UserOutlined style={{ color: '#ffd700', fontSize: '16px' }} />}
+              prefix={<TrophyOutlined style={{ color: '#ffd700', fontSize: '16px' }} />}
               valueStyle={{ color: '#ffd700', fontSize: '20px' }}
             />
+            <div style={{ marginTop: '8px' }}>
+              <Text style={{ color: stats.currentUserFrequency >= stats.averageFrequency ? '#43b581' : '#f87171', fontSize: '11px' }}>
+                {stats.currentUserFrequency >= stats.averageFrequency ? 'Acima' : 'Abaixo'} da média geral
+              </Text>
+            </div>
           </Card>
         </Col>
       </Row>
+
+
 
       {/* Lista de Alunos */}
       <Row gutter={[16, 16]}>
@@ -180,16 +205,9 @@ export default function RankingAluno() {
               <Card
                 hoverable
                 style={{ 
-                  background: aluno.frequency >= stats.averageFrequency 
-                    ? 'linear-gradient(145deg, rgba(67, 181, 129, 0.1) 0%, #36393f 100%)' 
-                    : '#36393f',
-                  border: aluno.frequency >= stats.averageFrequency 
-                    ? '1px solid rgba(67, 181, 129, 0.3)' 
-                    : '1px solid #5c6370',
-                  borderRadius: '8px',
-                  boxShadow: aluno.frequency >= stats.averageFrequency 
-                    ? '0 4px 16px rgba(67, 181, 129, 0.1)' 
-                    : 'none'
+                  background: '#36393f',
+                  border: '1px solid #5c6370',
+                  borderRadius: '8px'
                 }}
                 styles={{ 
                   body: {
@@ -267,20 +285,6 @@ export default function RankingAluno() {
                     {aluno.lastCheckIn === 'Nunca' ? 'Nunca' : new Date(aluno.lastCheckIn).toLocaleDateString('pt-BR')}
                   </Text>
                 </div>
-
-                {aluno.frequency >= stats.averageFrequency && (
-                  <div style={{ 
-                    marginTop: '8px', 
-                    padding: '4px 8px', 
-                    background: 'rgba(67, 181, 129, 0.2)', 
-                    borderRadius: '4px',
-                    textAlign: 'center'
-                  }}>
-                    <Text style={{ color: '#43b581', fontSize: '11px', fontWeight: 'bold' }}>
-                      Acima da Média
-                    </Text>
-                  </div>
-                )}
               </Card>
             </Col>
           ))

@@ -133,12 +133,8 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
   }
 
   const userMenuItems = [
-    {
-      key: 'profile',
-      icon: <EditOutlined />,
-      label: 'Editar Perfil',
-      onClick: handleOpenProfile,
-    },
+    // Removido o item "Editar Perfil" para evitar duplicação
+    // O botão será acessível diretamente no sidebar
   ]
 
   const getBeltColor = (belt: string) => {
@@ -247,22 +243,17 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
 
           {/* Footer com botões de ação */}
           <div className="p-4 border-t border-gray-700/50 flex-shrink-0 space-y-2">
-            <Dropdown
-              menu={{ items: userMenuItems }}
-              placement="topRight"
-              trigger={['click']}
+            <Button
+              type="text"
+              onClick={handleOpenProfile}
+              className="w-full text-left text-white hover:text-blue-300 hover:bg-blue-500/10 rounded-lg px-3 py-2.5 h-auto flex items-center space-x-3 transition-all duration-200"
             >
-              <Button
-                type="text"
-                className="w-full text-left text-white hover:text-blue-300 hover:bg-blue-500/10 rounded-lg px-3 py-2.5 h-auto flex items-center space-x-3 transition-all duration-200"
-              >
-                <EditOutlined className="text-lg flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">Editar Perfil</div>
-                  <div className="text-xs text-gray-400">Configurações</div>
-                </div>
-              </Button>
-            </Dropdown>
+              <EditOutlined className="text-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">Editar Perfil</div>
+                <div className="text-xs text-gray-400">Configurações</div>
+              </div>
+            </Button>
             
             {/* Botão de Logout */}
             <Button
