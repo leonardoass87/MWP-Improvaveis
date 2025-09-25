@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { 
   Card, 
   Button, 
@@ -83,7 +83,7 @@ const StudentManagement: React.FC<StudentManagementProps> = ({ onBack }) => {
     return beltColors.find(b => b.value === belt) || beltColors[0]
   }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
@@ -116,11 +116,11 @@ const StudentManagement: React.FC<StudentManagementProps> = ({ onBack }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [loadData])
 
   const handlePromoteUser = async (values: any) => {
     try {

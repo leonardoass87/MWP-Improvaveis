@@ -9,15 +9,18 @@ export const dynamic = 'force-dynamic'
 // Função para mapear cores de faixa
 function mapBeltColor(belt: string): Belt {
   const beltMap: { [key: string]: Belt } = {
-    'white': 'white',
-    'blue': 'blue',
-    'purple': 'purple',
-    'brown': 'brown',
-    'black': 'black',
-    'coral': 'coral',
-    'red': 'red'
+    'white': 'branca',
+    'branca': 'branca',
+    'blue': 'azul',
+    'azul': 'azul',
+    'purple': 'roxa',
+    'roxa': 'roxa',
+    'brown': 'marrom',
+    'marrom': 'marrom',
+    'black': 'preta',
+    'preta': 'preta'
   }
-  return beltMap[belt.toLowerCase()] || 'white'
+  return beltMap[belt.toLowerCase()] || 'branca'
 }
 
 export async function PUT(request: NextRequest) {
