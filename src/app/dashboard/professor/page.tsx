@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Statistic, Modal, Space, Checkbox, Input, Select, Tooltip, App } from 'antd'
-import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined, CopyOutlined } from '@ant-design/icons'
+import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, TeamOutlined, CalendarOutlined, ExclamationCircleOutlined, CheckOutlined, CloseOutlined, SearchOutlined, FilterOutlined, TrophyOutlined, BarChartOutlined, PieChartOutlined, EditOutlined, DashboardOutlined, ArrowLeftOutlined, EyeOutlined, CopyOutlined, UserAddOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
+import StudentManagement from '@/components/StudentManagement'
 import { AuthUser } from '@/types'
 import { useRouter } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts'
@@ -19,7 +20,8 @@ enum ProfessorView {
   CHECKINS = 'checkins',
   STUDENTS = 'students',
   POSTS = 'posts',
-  DASHBOARD = 'dashboard'
+  DASHBOARD = 'dashboard',
+  STUDENT_MANAGEMENT = 'student_management'
 }
 
 interface CheckInRequest {
@@ -1012,10 +1014,10 @@ export default function ProfessorDashboard() {
           >
             <TeamOutlined style={{ fontSize: '48px', color: '#43b581', marginBottom: '16px' }} />
             <Title level={4} style={{ color: '#ffffff', textAlign: 'center', margin: 0 }}>
-              Gerenciar Alunos
+              Lista Alunos
             </Title>
             <Text style={{ color: '#b9bbbe', textAlign: 'center', marginTop: '8px' }}>
-              Visualizar e gerenciar seus alunos
+              Visualizar contato dos seus alunos
             </Text>
             <Tag color="green" style={{ marginTop: '8px' }}>
               {stats.totalStudents} aluno{stats.totalStudents !== 1 ? 's' : ''}
@@ -1087,6 +1089,43 @@ export default function ProfessorDashboard() {
             </Text>
             <Tag color="red" style={{ marginTop: '8px' }}>
               Análises
+            </Tag>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Segunda linha de cards */}
+      <Row gutter={[24, 24]} justify="center" className="mt-6">
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            hoverable
+            className="menu-card"
+            style={{ 
+              background: 'linear-gradient(145deg, #36393f 0%, #2f3136 100%)',
+              border: '1px solid #5c6370',
+              borderRadius: '12px',
+              height: '200px',
+              cursor: 'pointer'
+            }}
+            bodyStyle={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              height: '100%',
+              padding: '24px'
+            }}
+            onClick={() => setCurrentView(ProfessorView.STUDENT_MANAGEMENT)}
+          >
+            <UserAddOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
+            <Title level={4} style={{ color: '#ffffff', textAlign: 'center', margin: 0 }}>
+              Gestão de Alunos
+            </Title>
+            <Text style={{ color: '#b9bbbe', textAlign: 'center', marginTop: '8px' }}>
+              Promover usuários e editar faixas
+            </Text>
+            <Tag color="green" style={{ marginTop: '8px' }}>
+              Novo
             </Tag>
           </Card>
         </Col>
@@ -1405,7 +1444,7 @@ export default function ProfessorDashboard() {
 
         {currentView === ProfessorView.STUDENTS && (
         <div className="max-w-7xl mx-auto">
-          {renderHeader('Gerenciar Alunos')}
+          {renderHeader('')}
           
           {/* Lista de Alunos */}
           <Row gutter={[16, 16]} className="mb-6 md:mb-8">
@@ -2816,6 +2855,13 @@ export default function ProfessorDashboard() {
           </Col>
         </Row>
         </div>
+        )}
+
+        {currentView === ProfessorView.STUDENT_MANAGEMENT && (
+          <div className="max-w-7xl mx-auto">
+            {renderHeader('Gestão de Alunos')}
+            <StudentManagement />
+          </div>
         )}
 
       <style jsx global>{`

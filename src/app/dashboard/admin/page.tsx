@@ -425,29 +425,37 @@ export default function AdminDashboard() {
     {
       title: 'Ações',
       key: 'actions',
+      width: 200,
       render: (record: User) => (
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           <Button 
             size="small" 
             icon={<EditOutlined />}
             onClick={() => handleEditUser(record)}
+            className="text-xs"
+            style={{ minWidth: '60px' }}
           >
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </Button>
           <Button 
             size="small" 
             type={record.active ? 'default' : 'primary'}
             onClick={() => handleToggleActive(record.id)}
+            className="text-xs"
+            style={{ minWidth: '60px' }}
           >
-            {record.active ? 'Desativar' : 'Ativar'}
+            <span className="hidden sm:inline">{record.active ? 'Desativar' : 'Ativar'}</span>
+            <span className="sm:hidden">{record.active ? 'Off' : 'On'}</span>
           </Button>
           <Button 
             size="small" 
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteUser(record.id)}
+            className="text-xs"
+            style={{ minWidth: '60px' }}
           >
-            Excluir
+            <span className="hidden sm:inline">Excluir</span>
           </Button>
         </div>
       )
@@ -513,14 +521,17 @@ export default function AdminDashboard() {
     {
       title: 'Ações',
       key: 'actions',
+      width: 100,
       render: (record: Post) => (
         <Button 
           size="small" 
           danger
           icon={<DeleteOutlined />}
           onClick={() => handleDeletePost(record.id)}
+          className="text-xs"
+          style={{ minWidth: '60px' }}
         >
-          Excluir
+          <span className="hidden sm:inline">Excluir</span>
         </Button>
       )
     }
@@ -540,67 +551,70 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout user={user}>
-      <div>
-        <Title level={2} className="text-white">Dashboard do Administrador</Title>
-        <Text className="text-gray-400">Bem-vindo, {user?.name}!</Text>
+      <div className="p-2 sm:p-4">
+        <Title level={2} className="text-white text-lg sm:text-xl md:text-2xl mb-2">Dashboard do Administrador</Title>
+        <Text className="text-gray-400 text-sm sm:text-base">Bem-vindo, {user?.name}!</Text>
 
-      {/* Estatísticas */}
-      <Row gutter={16} style={{ marginTop: '24px' }}>
-        <Col span={6}>
+      {/* Estatísticas - Mobile Optimized */}
+      <Row gutter={[8, 8]} style={{ marginTop: '16px' }}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title={<span className="text-gray-300">Total de Usuários</span>}
+              title={<span className="text-gray-300 text-xs sm:text-sm">Total de Usuários</span>}
               value={stats.totalUsers}
               prefix={<UserOutlined className="text-blue-400" />}
-              valueStyle={{ color: '#ffffff' }}
+              valueStyle={{ color: '#ffffff', fontSize: '16px' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title={<span className="text-gray-300">Usuários Ativos</span>}
+              title={<span className="text-gray-300 text-xs sm:text-sm">Usuários Ativos</span>}
               value={stats.activeUsers}
               prefix={<CheckCircleOutlined className="text-green-400" />}
-              valueStyle={{ color: '#52c41a' }}
+              valueStyle={{ color: '#52c41a', fontSize: '16px' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title={<span className="text-gray-300">Alunos</span>}
+              title={<span className="text-gray-300 text-xs sm:text-sm">Alunos</span>}
               value={stats.students}
               prefix={<TeamOutlined className="text-blue-400" />}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#1890ff', fontSize: '16px' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card className="bg-discord-dark border-gray-700">
             <Statistic
-              title={<span className="text-gray-300">Professores</span>}
+              title={<span className="text-gray-300 text-xs sm:text-sm">Professores</span>}
               value={stats.instructors}
               prefix={<UserOutlined className="text-purple-400" />}
-              valueStyle={{ color: '#722ed1' }}
+              valueStyle={{ color: '#722ed1', fontSize: '16px' }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Gestão de Usuários e Posts */}
+      {/* Gestão de Usuários e Posts - Mobile Optimized */}
       <Card 
-        title={<span className="text-white">Gestão de Usuários e Posts</span>}
+        title={<span className="text-white text-sm sm:text-base">Gestão de Usuários e Posts</span>}
         className="bg-discord-dark border-gray-700"
-        style={{ marginTop: '24px' }}
+        style={{ marginTop: '16px' }}
         extra={
           activeTab === 'users' && (
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
               onClick={handleCreateUser}
+              size="small"
+              className="text-xs sm:text-sm"
             >
-              Novo Usuário
+              <span className="hidden sm:inline">Novo Usuário</span>
+              <span className="sm:hidden">Novo</span>
             </Button>
           )
         }
@@ -608,46 +622,65 @@ export default function AdminDashboard() {
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
+          size="small"
           items={[
             {
               key: 'users',
               label: (
-                <span className="text-white">
-                  <UserOutlined /> Usuários
+                <span className="text-white text-xs sm:text-sm">
+                  <UserOutlined /> <span className="hidden sm:inline">Usuários</span>
                 </span>
               ),
               children: (
-                <Table
-                  columns={userColumns}
-                  dataSource={users}
-                  rowKey="id"
-                  pagination={{ pageSize: 10 }}
-                />
+                <div className="overflow-x-auto">
+                  <Table
+                    columns={userColumns}
+                    dataSource={users}
+                    rowKey="id"
+                    pagination={{ 
+                      pageSize: 10,
+                      showSizeChanger: false,
+                      showQuickJumper: false,
+                      size: 'small'
+                    }}
+                    scroll={{ x: 800 }}
+                    size="small"
+                  />
+                </div>
               )
             },
             {
               key: 'posts',
               label: (
-                <span className="text-white">
-                  <FileTextOutlined /> Posts
+                <span className="text-white text-xs sm:text-sm">
+                  <FileTextOutlined /> <span className="hidden sm:inline">Posts</span>
                 </span>
               ),
               children: (
-                <Table
-                  columns={postColumns}
-                  dataSource={posts}
-                  rowKey="id"
-                  pagination={{ pageSize: 10 }}
-                />
+                <div className="overflow-x-auto">
+                  <Table
+                    columns={postColumns}
+                    dataSource={posts}
+                    rowKey="id"
+                    pagination={{ 
+                      pageSize: 10,
+                      showSizeChanger: false,
+                      showQuickJumper: false,
+                      size: 'small'
+                    }}
+                    scroll={{ x: 600 }}
+                    size="small"
+                  />
+                </div>
               )
             }
           ]}
         />
       </Card>
 
-      {/* Modal de Criação/Edição */}
+      {/* Modal de Criação/Edição - Mobile Optimized */}
       <Modal
-        title={editingUser ? 'Editar Usuário' : 'Novo Usuário'}
+        title={<span className="text-sm sm:text-base">{editingUser ? 'Editar Usuário' : 'Novo Usuário'}</span>}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false)
@@ -655,6 +688,9 @@ export default function AdminDashboard() {
           setEditingUser(null)
         }}
         footer={null}
+        width="90%"
+        style={{ maxWidth: '500px' }}
+        centered
       >
         <Form
           form={form}

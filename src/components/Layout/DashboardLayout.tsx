@@ -115,12 +115,6 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
         icon: <UserOutlined />,
         label: 'Usuários',
       })
-    } else if (user.role === 'instructor') {
-      items.push({
-        key: '/dashboard/professor/alunos',
-        icon: <UserOutlined />,
-        label: 'Alunos',
-      })
     } else if (user.role === 'student') {
       items.push({
         key: '/dashboard/aluno/ranking',
@@ -359,19 +353,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                     </Button>
                   )}
                   
-                  {currentUser?.role === 'instructor' && (
-                    <Button
-                      type="text"
-                      onClick={() => {
-                        router.push('/dashboard/professor/alunos')
-                        setMobileMenuVisible(false)
-                      }}
-                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
-                    >
-                      <UserOutlined className="text-xl flex-shrink-0" />
-                      <span className="text-base font-medium">Alunos</span>
-                    </Button>
-                  )}
+
                   
                   {currentUser?.role === 'admin' && (
                     <Button
