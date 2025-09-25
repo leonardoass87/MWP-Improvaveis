@@ -99,7 +99,7 @@ export default function RankingAluno() {
     }
 
     loadStudentsData()
-  }, [router])
+  }, [router, message])
 
   if (loading || !user) {
     return (
@@ -129,10 +129,10 @@ export default function RankingAluno() {
            </Button>
          </div>
         <Title level={2} className="text-white mb-2">
-          Alunos por Graduação
+          Lista De alunos ativos
         </Title>
         <Text className="text-gray-400">
-          Veja todos os alunos ativos e compare sua frequência
+          Veja todos os alunos ativos e sua frequência
         </Text>
       </div>
 

@@ -194,7 +194,7 @@ export default function ProfessorDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [message])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -929,7 +929,7 @@ export default function ProfessorDashboard() {
               }}
               onClick={() => {
                 // Implementar edição
-                console.log('Editar aluno:', record.name);
+                // TODO: Implementar funcionalidade de edição
               }}
             />
           </Tooltip>
@@ -1798,167 +1798,232 @@ export default function ProfessorDashboard() {
                               return `${age} anos`
                             }
 
+                            // Detectar se é mobile
+                            const isMobile = window.innerWidth < 768;
+                            
                             Modal.info({
-                              title: `📋 Detalhes de ${student.name}`,
-                              width: 600,
+                              title: (
+                                <span style={{ color: '#ffffff' }}>
+                                  Detalhes de {student.name}
+                                </span>
+                              ),
+                              width: isMobile ? '95%' : 600,
+                              style: {
+                                backgroundColor: '#2f3136'
+                              },
+                              bodyStyle: {
+                                backgroundColor: '#2f3136',
+                                padding: '0'
+                              },
+                              maskStyle: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)'
+                              },
+                              className: 'dark-modal',
                               content: (
-                                <div style={{ color: '#ffffff', fontSize: '14px' }}>
-                                  {/* Informações Básicas */}
-                                  <div style={{ 
-                                    background: '#2f3136', 
-                                    padding: '16px', 
-                                    borderRadius: '8px', 
-                                    marginBottom: '16px',
-                                    border: '1px solid #5c6370'
-                                  }}>
-                                    <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
-                                      📊 Informações Básicas
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                      <div>
-                                        <strong style={{ color: '#b9bbbe' }}>📧 Email:</strong>
-                                        <div style={{ 
-                                          color: '#ffffff', 
-                                          marginTop: '4px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between'
-                                        }}>
-                                          <span>{student.email}</span>
-                                          <Button
-                                            type="text"
-                                            size="small"
-                                            icon={<CopyOutlined />}
-                                            style={{ 
-                                              color: '#7289da',
-                                              padding: '0 4px',
-                                              minWidth: 'auto',
-                                              height: 'auto'
-                                            }}
-                                            onClick={() => {
-                                              navigator.clipboard.writeText(student.email)
-                                              message.success('Email copiado!')
-                                            }}
-                                          />
+                                <div style={{ color: '#ffffff', fontSize: '14px', backgroundColor: '#2f3136' }}>
+                                  {/* Versão Mobile - Apenas Contato e Endereço */}
+                                  {isMobile ? (
+                                    <div style={{ 
+                                      background: '#2f3136', 
+                                      padding: '20px', 
+                                      borderRadius: '8px',
+                                      border: '1px solid #404249'
+                                    }}>
+                                      <h4 style={{ 
+                                        color: '#ffffff', 
+                                        margin: '0 0 20px 0', 
+                                        fontSize: '18px', 
+                                        fontWeight: '600',
+                                        textAlign: 'center',
+                                        borderBottom: '1px solid #404249',
+                                        paddingBottom: '12px'
+                                      }}>
+                                        Informações de Contato
+                                      </h4>
+                                      <div style={{ display: 'grid', gap: '20px' }}>
+                                        <div>
+                                          <div style={{ 
+                                            marginBottom: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            color: '#b9bbbe',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                          }}>
+                                            Contato de Emergência
+                                          </div>
+                                          <div style={{ 
+                                            background: '#36393f', 
+                                            padding: '16px', 
+                                            borderRadius: '6px',
+                                            border: '1px solid #404249'
+                                          }}>
+                                            {fullStudentData?.emergencyContact ? (
+                                              <>
+                                                <div style={{ 
+                                                  fontSize: '16px', 
+                                                  fontWeight: '500',
+                                                  color: '#ffffff',
+                                                  marginBottom: '12px'
+                                                }}>
+                                                  {fullStudentData.emergencyContact}
+                                                </div>
+                                                {fullStudentData.emergencyPhone && (
+                                                  <div 
+                                                    style={{ 
+                                                      fontSize: '16px',
+                                                      fontWeight: '500',
+                                                      color: '#7289da',
+                                                      cursor: 'pointer',
+                                                      padding: '8px 12px',
+                                                      background: '#2f3136',
+                                                      borderRadius: '4px',
+                                                      border: '1px solid #404249',
+                                                      transition: 'all 0.2s ease',
+                                                      userSelect: 'none'
+                                                    }}
+                                                    onClick={() => {
+                                                      navigator.clipboard.writeText(fullStudentData.emergencyPhone)
+                                                      message.success('Telefone copiado!')
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                      (e.target as HTMLElement).style.background = '#404249';
+                                                      (e.target as HTMLElement).style.color = '#ffffff'
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                      (e.target as HTMLElement).style.background = '#2f3136';
+                                                      (e.target as HTMLElement).style.color = '#7289da'
+                                                    }}
+                                                  >
+                                                    {fullStudentData.emergencyPhone}
+                                                  </div>
+                                                )}
+                                              </>
+                                            ) : (
+                                              <span style={{ 
+                                                color: '#72767d', 
+                                                fontStyle: 'italic',
+                                                fontSize: '14px'
+                                              }}>
+                                                Não informado
+                                              </span>
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                      <div>
-                                        <strong style={{ color: '#b9bbbe' }}>🥋 Faixa:</strong>
-                                        <div style={{ 
-                                          color: '#ffffff', 
-                                          marginTop: '4px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between'
-                                        }}>
-                                          <span>{student.belt}</span>
-                                          <Button
-                                            type="text"
-                                            size="small"
-                                            icon={<CopyOutlined />}
-                                            style={{ 
-                                              color: '#7289da',
-                                              padding: '0 4px',
-                                              minWidth: 'auto',
-                                              height: 'auto'
-                                            }}
-                                            onClick={() => {
-                                              navigator.clipboard.writeText(student.belt)
-                                              message.success('Faixa copiada!')
-                                            }}
-                                          />
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <strong style={{ color: '#b9bbbe' }}>🎂 Idade:</strong>
-                                        <div style={{ 
-                                          color: '#ffffff', 
-                                          marginTop: '4px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between'
-                                        }}>
-                                          <span>
-                                            {fullStudentData?.birthDate ? calculateAge(fullStudentData.birthDate) : 'Não informado'}
-                                          </span>
-                                          {fullStudentData?.birthDate && (
-                                            <Button
-                                              type="text"
-                                              size="small"
-                                              icon={<CopyOutlined />}
-                                              style={{ 
-                                                color: '#7289da',
-                                                padding: '0 4px',
-                                                minWidth: 'auto',
-                                                height: 'auto'
-                                              }}
-                                              onClick={() => {
-                                                const age = calculateAge(fullStudentData.birthDate)
-                                                navigator.clipboard.writeText(age.toString())
-                                                message.success('Idade copiada!')
-                                              }}
-                                            />
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <strong style={{ color: '#b9bbbe' }}>⚖️ Peso:</strong>
-                                        <div style={{ 
-                                          color: '#ffffff', 
-                                          marginTop: '4px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between'
-                                        }}>
-                                          <span>
-                                            {fullStudentData?.weight ? `${fullStudentData.weight} kg` : 'Não informado'}
-                                          </span>
-                                          {fullStudentData?.weight && (
-                                            <Button
-                                              type="text"
-                                              size="small"
-                                              icon={<CopyOutlined />}
-                                              style={{ 
-                                                color: '#7289da',
-                                                padding: '0 4px',
-                                                minWidth: 'auto',
-                                                height: 'auto'
-                                              }}
-                                              onClick={() => {
-                                                navigator.clipboard.writeText(`${fullStudentData.weight} kg`)
-                                                message.success('Peso copiado!')
-                                              }}
-                                            />
-                                          )}
+                                        <div>
+                                          <div style={{ 
+                                            marginBottom: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            color: '#b9bbbe',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                          }}>
+                                            Endereço
+                                          </div>
+                                          <div style={{ 
+                                            background: '#36393f', 
+                                            padding: '16px', 
+                                            borderRadius: '6px',
+                                            border: '1px solid #404249',
+                                            minHeight: '60px',
+                                            display: 'flex',
+                                            alignItems: 'center'
+                                          }}>
+                                            <span style={{ 
+                                              fontSize: '15px', 
+                                              lineHeight: '1.5',
+                                              color: fullStudentData?.address ? '#ffffff' : '#72767d',
+                                              fontStyle: fullStudentData?.address ? 'normal' : 'italic'
+                                            }}>
+                                              {fullStudentData?.address || 'Não informado'}
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
-
-                                  {/* Contato */}
-                                  <div style={{ 
-                                    background: '#2f3136', 
-                                    padding: '16px', 
-                                    borderRadius: '8px', 
-                                    marginBottom: '16px',
-                                    border: '1px solid #5c6370'
-                                  }}>
-                                    <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
-                                      📞 Contato e Endereço
-                                    </h4>
-                                    <div style={{ display: 'grid', gap: '12px' }}>
-                                      <div>
-                                        <strong style={{ color: '#b9bbbe' }}>🚨 Contato de Emergência:</strong>
-                                        <div style={{ color: '#ffffff', marginTop: '4px' }}>
-                                          {fullStudentData?.emergencyContact ? (
-                                            <>
-                                              <div style={{ 
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                marginBottom: '4px'
-                                              }}>
-                                                <span>{fullStudentData.emergencyContact}</span>
+                                  ) : (
+                                    /* Versão Desktop - Todas as informações */
+                                    <>
+                                      {/* Informações Básicas */}
+                                      <div style={{ 
+                                        background: '#2f3136', 
+                                        padding: '16px', 
+                                        borderRadius: '8px', 
+                                        marginBottom: '16px',
+                                        border: '1px solid #5c6370'
+                                      }}>
+                                        <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                                          📊 Informações Básicas
+                                        </h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                          <div>
+                                            <strong style={{ color: '#b9bbbe' }}>📧 Email:</strong>
+                                            <div style={{ 
+                                              color: '#ffffff', 
+                                              marginTop: '4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}>
+                                              <span>{student.email}</span>
+                                              <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<CopyOutlined />}
+                                                style={{ 
+                                                  color: '#7289da',
+                                                  padding: '0 4px',
+                                                  minWidth: 'auto',
+                                                  height: 'auto'
+                                                }}
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(student.email)
+                                                  message.success('Email copiado!')
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <strong style={{ color: '#b9bbbe' }}>🥋 Faixa:</strong>
+                                            <div style={{ 
+                                              color: '#ffffff', 
+                                              marginTop: '4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}>
+                                              <span>{student.belt}</span>
+                                              <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<CopyOutlined />}
+                                                style={{ 
+                                                  color: '#7289da',
+                                                  padding: '0 4px',
+                                                  minWidth: 'auto',
+                                                  height: 'auto'
+                                                }}
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(student.belt)
+                                                  message.success('Faixa copiada!')
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <strong style={{ color: '#b9bbbe' }}>🎂 Idade:</strong>
+                                            <div style={{ 
+                                              color: '#ffffff', 
+                                              marginTop: '4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}>
+                                              <span>
+                                                {fullStudentData?.birthDate ? calculateAge(fullStudentData.birthDate) : 'Não informado'}
+                                              </span>
+                                              {fullStudentData?.birthDate && (
                                                 <Button
                                                   type="text"
                                                   size="small"
@@ -1970,122 +2035,201 @@ export default function ProfessorDashboard() {
                                                     height: 'auto'
                                                   }}
                                                   onClick={() => {
-                                                    navigator.clipboard.writeText(fullStudentData.emergencyContact)
-                                                    message.success('Contato de emergência copiado!')
+                                                    const age = calculateAge(fullStudentData.birthDate)
+                                                    navigator.clipboard.writeText(age.toString())
+                                                    message.success('Idade copiada!')
                                                   }}
                                                 />
-                                              </div>
-                                              {fullStudentData.emergencyPhone && (
-                                                <div style={{ 
-                                                  color: '#43b581', 
-                                                  fontWeight: '500',
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  justifyContent: 'space-between'
-                                                }}>
-                                                  <span>📱 {fullStudentData.emergencyPhone}</span>
-                                                  <Button
-                                                    type="text"
-                                                    size="small"
-                                                    icon={<CopyOutlined />}
-                                                    style={{ 
-                                                      color: '#7289da',
-                                                      padding: '0 4px',
-                                                      minWidth: 'auto',
-                                                      height: 'auto'
-                                                    }}
-                                                    onClick={() => {
-                                                      navigator.clipboard.writeText(fullStudentData.emergencyPhone)
-                                                      message.success('Telefone de emergência copiado!')
-                                                    }}
-                                                  />
-                                                </div>
                                               )}
-                                            </>
-                                          ) : 'Não informado'}
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <strong style={{ color: '#b9bbbe' }}>⚖️ Peso:</strong>
+                                            <div style={{ 
+                                              color: '#ffffff', 
+                                              marginTop: '4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}>
+                                              <span>
+                                                {fullStudentData?.weight ? `${fullStudentData.weight} kg` : 'Não informado'}
+                                              </span>
+                                              {fullStudentData?.weight && (
+                                                <Button
+                                                  type="text"
+                                                  size="small"
+                                                  icon={<CopyOutlined />}
+                                                  style={{ 
+                                                    color: '#7289da',
+                                                    padding: '0 4px',
+                                                    minWidth: 'auto',
+                                                    height: 'auto'
+                                                  }}
+                                                  onClick={() => {
+                                                    navigator.clipboard.writeText(`${fullStudentData.weight} kg`)
+                                                    message.success('Peso copiado!')
+                                                  }}
+                                                />
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                      <div>
-                                        <strong style={{ color: '#b9bbbe' }}>🏠 Endereço:</strong>
-                                        <div style={{ 
-                                          color: '#ffffff', 
-                                          marginTop: '4px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between'
-                                        }}>
-                                          <span style={{ flex: 1, marginRight: '8px' }}>
-                                            {fullStudentData?.address || 'Não informado'}
-                                          </span>
-                                          {fullStudentData?.address && (
-                                            <Button
-                                              type="text"
-                                              size="small"
-                                              icon={<CopyOutlined />}
-                                              style={{ 
-                                                color: '#7289da',
-                                                padding: '0 4px',
-                                                minWidth: 'auto',
-                                                height: 'auto'
-                                              }}
-                                              onClick={() => {
-                                                navigator.clipboard.writeText(fullStudentData.address)
-                                                message.success('Endereço copiado!')
-                                              }}
-                                            />
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
 
-                                  {/* Performance */}
-                                  <div style={{ 
-                                    background: '#2f3136', 
-                                    padding: '16px', 
-                                    borderRadius: '8px',
-                                    border: '1px solid #5c6370'
-                                  }}>
-                                    <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
-                                      📈 Performance e Frequência
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                                      <div style={{ textAlign: 'center' }}>
-                                        <strong style={{ color: '#b9bbbe' }}>Total Check-ins</strong>
-                                        <div style={{ 
-                                          color: '#ffffff', 
-                                          fontSize: '20px', 
-                                          fontWeight: 'bold',
-                                          marginTop: '4px'
-                                        }}>
-                                          {student.totalCheckIns}
+                                      {/* Contato */}
+                                      <div style={{ 
+                                        background: '#2f3136', 
+                                        padding: '16px', 
+                                        borderRadius: '8px', 
+                                        marginBottom: '16px',
+                                        border: '1px solid #5c6370'
+                                      }}>
+                                        <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                                          📞 Contato e Endereço
+                                        </h4>
+                                        <div style={{ display: 'grid', gap: '12px' }}>
+                                          <div>
+                                            <strong style={{ color: '#b9bbbe' }}>🚨 Contato de Emergência:</strong>
+                                            <div style={{ color: '#ffffff', marginTop: '4px' }}>
+                                              {fullStudentData?.emergencyContact ? (
+                                                <>
+                                                  <div style={{ 
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    marginBottom: '4px'
+                                                  }}>
+                                                    <span>{fullStudentData.emergencyContact}</span>
+                                                    <Button
+                                                      type="text"
+                                                      size="small"
+                                                      icon={<CopyOutlined />}
+                                                      style={{ 
+                                                        color: '#7289da',
+                                                        padding: '0 4px',
+                                                        minWidth: 'auto',
+                                                        height: 'auto'
+                                                      }}
+                                                      onClick={() => {
+                                                        navigator.clipboard.writeText(fullStudentData.emergencyContact)
+                                                        message.success('Contato de emergência copiado!')
+                                                      }}
+                                                    />
+                                                  </div>
+                                                  {fullStudentData.emergencyPhone && (
+                                                    <div style={{ 
+                                                      color: '#43b581', 
+                                                      fontWeight: '500',
+                                                      display: 'flex',
+                                                      alignItems: 'center',
+                                                      justifyContent: 'space-between'
+                                                    }}>
+                                                      <span>📱 {fullStudentData.emergencyPhone}</span>
+                                                      <Button
+                                                        type="text"
+                                                        size="small"
+                                                        icon={<CopyOutlined />}
+                                                        style={{ 
+                                                          color: '#7289da',
+                                                          padding: '0 4px',
+                                                          minWidth: 'auto',
+                                                          height: 'auto'
+                                                        }}
+                                                        onClick={() => {
+                                                          navigator.clipboard.writeText(fullStudentData.emergencyPhone)
+                                                          message.success('Telefone de emergência copiado!')
+                                                        }}
+                                                      />
+                                                    </div>
+                                                  )}
+                                                </>
+                                              ) : 'Não informado'}
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <strong style={{ color: '#b9bbbe' }}>🏠 Endereço:</strong>
+                                            <div style={{ 
+                                              color: '#ffffff', 
+                                              marginTop: '4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}>
+                                              <span style={{ flex: 1, marginRight: '8px' }}>
+                                                {fullStudentData?.address || 'Não informado'}
+                                              </span>
+                                              {fullStudentData?.address && (
+                                                <Button
+                                                  type="text"
+                                                  size="small"
+                                                  icon={<CopyOutlined />}
+                                                  style={{ 
+                                                    color: '#7289da',
+                                                    padding: '0 4px',
+                                                    minWidth: 'auto',
+                                                    height: 'auto'
+                                                  }}
+                                                  onClick={() => {
+                                                    navigator.clipboard.writeText(fullStudentData.address)
+                                                    message.success('Endereço copiado!')
+                                                  }}
+                                                />
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                      <div style={{ textAlign: 'center' }}>
-                                        <strong style={{ color: '#b9bbbe' }}>Aprovados</strong>
-                                        <div style={{ 
-                                          color: '#52c41a', 
-                                          fontSize: '20px', 
-                                          fontWeight: 'bold',
-                                          marginTop: '4px'
-                                        }}>
-                                          {student.approvedCheckIns}
+
+                                      {/* Performance */}
+                                      <div style={{ 
+                                        background: '#2f3136', 
+                                        padding: '16px', 
+                                        borderRadius: '8px',
+                                        border: '1px solid #5c6370'
+                                      }}>
+                                        <h4 style={{ color: '#7289da', margin: '0 0 12px 0', fontSize: '16px' }}>
+                                          📈 Performance e Frequência
+                                        </h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                          <div style={{ textAlign: 'center' }}>
+                                            <strong style={{ color: '#b9bbbe' }}>Total Check-ins</strong>
+                                            <div style={{ 
+                                              color: '#ffffff', 
+                                              fontSize: '20px', 
+                                              fontWeight: 'bold',
+                                              marginTop: '4px'
+                                            }}>
+                                              {student.totalCheckIns}
+                                            </div>
+                                          </div>
+                                          <div style={{ textAlign: 'center' }}>
+                                            <strong style={{ color: '#b9bbbe' }}>Aprovados</strong>
+                                            <div style={{ 
+                                              color: '#52c41a', 
+                                              fontSize: '20px', 
+                                              fontWeight: 'bold',
+                                              marginTop: '4px'
+                                            }}>
+                                              {student.approvedCheckIns}
+                                            </div>
+                                          </div>
+                                          <div style={{ textAlign: 'center' }}>
+                                            <strong style={{ color: '#b9bbbe' }}>Frequência</strong>
+                                            <div style={{ 
+                                              color: student.attendanceRate >= 90 ? '#52c41a' : 
+                                                    student.attendanceRate >= 80 ? '#faad14' : '#ff4d4f',
+                                              fontSize: '20px', 
+                                              fontWeight: 'bold',
+                                              marginTop: '4px'
+                                            }}>
+                                              {student.attendanceRate.toFixed(1)}%
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                      <div style={{ textAlign: 'center' }}>
-                                        <strong style={{ color: '#b9bbbe' }}>Frequência</strong>
-                                        <div style={{ 
-                                          color: student.attendanceRate >= 90 ? '#52c41a' : 
-                                                student.attendanceRate >= 80 ? '#faad14' : '#ff4d4f',
-                                          fontSize: '20px', 
-                                          fontWeight: 'bold',
-                                          marginTop: '4px'
-                                        }}>
-                                          {student.attendanceRate.toFixed(1)}%
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                    </>
+                                  )}
                                 </div>
                               ),
                               okText: 'Fechar',
@@ -2406,7 +2550,7 @@ export default function ProfessorDashboard() {
         </Row>
 
         {/* Gráficos e Análises */}
-        <Row gutter={[16, 16]} className="mb-6 md:mb-8">
+        {/* <Row gutter={[16, 16]} className="mb-6 md:mb-8">
           <Col xs={24} lg={12}>
             <Card 
               title={
@@ -2471,7 +2615,7 @@ export default function ProfessorDashboard() {
               </ResponsiveContainer>
             </Card>
           </Col>
-        </Row>
+        </Row> */}
 
         <Row gutter={[16, 16]} className="mb-6 md:mb-8">
           <Col span={24}>

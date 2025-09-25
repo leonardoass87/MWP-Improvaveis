@@ -114,27 +114,11 @@ export async function PUT(request: NextRequest) {
     let finalBelt = currentUser.belt
     let finalDegree = currentUser.degree
 
-    console.log('Debug - Belt update:', {
-      authUserId: authUser.id,
-      targetUserId: id,
-      authUserRole: authUser.role,
-      receivedBelt: belt,
-      receivedDegree: degree,
-      currentBelt: currentUser.belt,
-      currentDegree: currentUser.degree
-    })
-
     // Permitir que todos os usuários alterem sua própria faixa e grau
     // Admins e instrutores também podem alterar de outros usuários
     if (authUser.id === id || authUser.role === 'admin' || authUser.role === 'instructor') {
       finalBelt = belt ? mapBeltColor(belt) : currentUser.belt
       finalDegree = degree !== undefined ? degree : currentUser.degree
-      
-      console.log('Debug - Belt mapping result:', {
-        mappedBelt: mapBeltColor(belt),
-        finalBelt,
-        finalDegree
-      })
     }
 
     // Preparar dados para atualização

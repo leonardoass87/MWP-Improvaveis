@@ -60,11 +60,14 @@ export default function LoginPage() {
     }
   }
 
+  // Função para fechar o modal de registro
+  const closeRegisterModal = () => {
+    setRegisterModalVisible(false)
+  }
+
   const handleRegister = async (values: any) => {
     setRegisterLoading(true)
     try {
-      console.log('Dados do cadastro:', values)
-      
       // Chamada para a API de cadastro
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -81,7 +84,7 @@ export default function LoginPage() {
       }
 
       message.success('Cadastro realizado com sucesso! Você pode fazer login agora.')
-      setRegisterModalVisible(false)
+      closeRegisterModal()
       
       // Preencher o email no formulário de login
       form.setFieldsValue({ email: values.email })
@@ -252,7 +255,7 @@ export default function LoginPage() {
           </div>
         }
         open={registerModalVisible}
-        onCancel={() => setRegisterModalVisible(false)}
+        onCancel={closeRegisterModal}
         footer={null}
         width={600}
         style={{
@@ -276,8 +279,9 @@ export default function LoginPage() {
       >
         <RegisterForm
           onFinish={handleRegister}
-          onCancel={() => setRegisterModalVisible(false)}
+          onCancel={closeRegisterModal}
           loading={registerLoading}
+          visible={registerModalVisible}
         />
       </Modal>
 

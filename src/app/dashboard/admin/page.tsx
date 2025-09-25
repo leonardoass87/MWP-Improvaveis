@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Statistic, Modal, Form, Select, Input, Tabs, App } from 'antd'
 import { UserOutlined, TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, FileTextOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
@@ -51,32 +51,7 @@ export default function AdminDashboard() {
   })
   const router = useRouter()
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userData = localStorage.getItem('user')
-
-    if (!token || !userData) {
-      router.push('/login')
-      return
-    }
-
-    const parsedUser = JSON.parse(userData)
-    if (parsedUser.role !== 'admin') {
-      router.push(`/dashboard/${parsedUser.role}`)
-      return
-    }
-
-    setUser(parsedUser)
-    loadData()
-  }, [router])
-
-  useEffect(() => {
-    if (activeTab === 'posts' && user) {
-      loadPosts()
-    }
-  }, [activeTab, user])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token')
       if (!token) return
@@ -118,9 +93,9 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [message])
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch('/api/posts', {
@@ -137,7 +112,32 @@ export default function AdminDashboard() {
       console.error('Erro ao carregar posts:', error)
       message.error('Erro ao carregar posts')
     }
-  }
+  }, [message])
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const userData = localStorage.getItem('user')
+
+    if (!token || !userData) {
+      router.push('/login')
+      return
+    }
+
+    const parsedUser = JSON.parse(userData)
+    if (parsedUser.role !== 'admin') {
+      router.push(`/dashboard/${parsedUser.role}`)
+      return
+    }
+
+    setUser(parsedUser)
+    loadData()
+  }, [router, loadData])
+
+  useEffect(() => {
+    if (activeTab === 'posts' && user) {
+      loadPosts()
+    }
+  }, [activeTab, user, loadPosts])
 
   const handleCreateUser = () => {
     setEditingUser(null)

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Form, Input, Button, Typography } from 'antd'
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons'
 
@@ -18,13 +18,35 @@ interface RegisterFormProps {
   onFinish: (values: RegisterFormData) => void
   onCancel: () => void
   loading?: boolean
+  visible?: boolean
 }
 
-export default function RegisterForm({ onFinish, onCancel, loading = false }: RegisterFormProps) {
+export default function RegisterForm({ onFinish, onCancel, loading = false, visible }: RegisterFormProps) {
   const [form] = Form.useForm()
+
+  // Resetar formulário quando o modal for aberto ou fechado
+  useEffect(() => {
+    if (visible) {
+      // Força o reset quando o modal abre
+      setTimeout(() => {
+        form.resetFields()
+      }, 0)
+    } else {
+      // Também reseta quando o modal fecha para garantir limpeza
+      form.resetFields()
+    }
+  }, [visible, form])
 
   const handleFinish = async (values: RegisterFormData) => {
     onFinish(values)
+    // Resetar formulário após sucesso
+    form.resetFields()
+  }
+
+  const handleCancel = () => {
+    // Resetar formulário ao cancelar
+    form.resetFields()
+    onCancel()
   }
 
   return (
@@ -134,7 +156,7 @@ export default function RegisterForm({ onFinish, onCancel, loading = false }: Re
 
         <div className="flex justify-between mt-6">
           <Button
-            onClick={onCancel}
+            onClick={handleCancel}
             style={{
               background: 'transparent',
               border: '1px solid #5c6370',

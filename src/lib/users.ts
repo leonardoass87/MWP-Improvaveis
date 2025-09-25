@@ -55,12 +55,6 @@ export function getAllUsers(): User[] {
 export function addUser(user: User): void {
   registeredUsers.push(user)
   saveRegisteredUsers(registeredUsers) // Salvar no arquivo
-  console.log('Usuário adicionado ao sistema:', {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  })
 }
 
 // Função para buscar usuário por email

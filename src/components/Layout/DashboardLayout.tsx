@@ -329,7 +329,6 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   
                   <Button
                     type="text"
-                    icon={<DashboardOutlined />}
                     onClick={() => {
                       const roleToRoute = {
                         admin: '/dashboard/admin',
@@ -340,50 +339,51 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                       router.push(route)
                       setMobileMenuVisible(false)
                     }}
-                    className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                    className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
                   >
-                    <span>Dashboard</span>
+                    <DashboardOutlined className="text-xl flex-shrink-0" />
+                    <span className="text-base font-medium">Dashboard</span>
                   </Button>
                   
                   {currentUser?.role === 'student' && (
                     <Button
                       type="text"
-                      icon={<TrophyOutlined />}
                       onClick={() => {
                         router.push('/dashboard/aluno/ranking')
                         setMobileMenuVisible(false)
                       }}
-                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
                     >
-                      <span>Ranking</span>
+                      <TrophyOutlined className="text-xl flex-shrink-0" />
+                      <span className="text-base font-medium">Ranking</span>
                     </Button>
                   )}
                   
                   {currentUser?.role === 'instructor' && (
                     <Button
                       type="text"
-                      icon={<UserOutlined />}
                       onClick={() => {
                         router.push('/dashboard/professor/alunos')
                         setMobileMenuVisible(false)
                       }}
-                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
                     >
-                      <span>Alunos</span>
+                      <UserOutlined className="text-xl flex-shrink-0" />
+                      <span className="text-base font-medium">Alunos</span>
                     </Button>
                   )}
                   
                   {currentUser?.role === 'admin' && (
                     <Button
                       type="text"
-                      icon={<UserOutlined />}
                       onClick={() => {
                         router.push('/dashboard/admin/usuarios')
                         setMobileMenuVisible(false)
                       }}
-                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                      className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
                     >
-                      <span>Usuários</span>
+                      <UserOutlined className="text-xl flex-shrink-0" />
+                      <span className="text-base font-medium">Usuários</span>
                     </Button>
                   )}
                 </div>
@@ -395,26 +395,26 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   
                   <Button
                     type="text"
-                    icon={<EditOutlined />}
                     onClick={() => {
                       handleOpenProfile()
                       setMobileMenuVisible(false)
                     }}
-                    className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                    className="w-full text-left text-white hover:text-gray-200 hover:bg-gray-800/50 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
                   >
-                    <span>Editar Perfil</span>
+                    <EditOutlined className="text-xl flex-shrink-0" />
+                    <span className="text-base font-medium">Editar Perfil</span>
                   </Button>
                   
                   <Button
                     type="text"
-                    icon={<LogoutOutlined />}
                     onClick={() => {
                       handleLogout()
                       setMobileMenuVisible(false)
                     }}
-                    className="w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-3 py-2 h-auto flex items-center space-x-3 transition-all duration-200"
+                    className="w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-4 py-3 h-auto flex items-center justify-start space-x-4 transition-all duration-200"
                   >
-                    <span>Sair da Conta</span>
+                    <LogoutOutlined className="text-xl flex-shrink-0" />
+                    <span className="text-base font-medium">Sair da Conta</span>
                   </Button>
                   
                   {/* Versão do Sistema */}

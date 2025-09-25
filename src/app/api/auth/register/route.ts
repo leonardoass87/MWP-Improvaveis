@@ -52,13 +52,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('Novo usuário cadastrado:', {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role
-    })
-
     // Retornar sucesso (sem dados sensíveis)
     return NextResponse.json({
       message: 'Usuário cadastrado com sucesso',

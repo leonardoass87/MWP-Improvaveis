@@ -1,7 +1,9 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef, useCallback } from 'react'
 import { Modal, Button, Avatar, Slider, App } from 'antd'
+import Image from 'next/image'
 import { 
   CameraOutlined, 
   UserOutlined, 
@@ -36,7 +38,7 @@ export default function AvatarUpload({ currentAvatar, onAvatarChange }: AvatarUp
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')!
-      const img = new Image()
+      const img = new window.Image()
 
       img.onload = () => {
         // Calcular dimensões mantendo aspect ratio

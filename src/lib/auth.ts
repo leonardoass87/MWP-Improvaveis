@@ -42,7 +42,6 @@ export function verifyToken(token: string): AuthUser | null {
       active: decoded.active,
     }
   } catch (error) {
-    console.log('❌ Erro ao verificar token:', error)
     return null
   }
 }

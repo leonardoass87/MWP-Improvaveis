@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Alert, Statistic, Progress, App } from 'antd'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Card, Button, Table, Tag, Spin, Typography, Row, Col, Alert, Statistic, Progress, App, Divider } from 'antd'
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, CalendarOutlined, TrophyOutlined, ExclamationCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import DashboardLayout from '@/components/Layout/DashboardLayout'
 import { AuthUser, CheckInWithUser, User } from '@/types'
@@ -44,6 +44,47 @@ export default function AlunoDashboard() {
   const [todayCheckInStatus, setTodayCheckInStatus] = useState<CheckInWithUser | null>(null)
   const router = useRouter()
 
+  const loadData = useCallback(async (token: string) => {
+    try {
+      const userId = JSON.parse(localStorage.getItem('user')!).id
+
+      // Carregar check-ins de hoje
+      const today = new Date().toISOString().split('T')[0]
+      const checkInsResponse = await fetch(`/api/checkins?date=${today}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (checkInsResponse.ok) {
+        const checkInsData = await checkInsResponse.json()
+        setTodayCheckIns(checkInsData)
+
+        // Verificar se já fez check-in hoje (apenas pendentes)
+        const userCheckIn = checkInsData.find((c: CheckInWithUser) => c.userId === userId && c.status === 'pending')
+        setHasCheckedInToday(!!userCheckIn)
+        setTodayCheckInStatus(userCheckIn || null)
+      }
+
+      // Carregar dados de faltas do aluno
+      const absenceResponse = await fetch(`/api/students/absences?studentId=${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (absenceResponse.ok) {
+        const absenceData = await absenceResponse.json()
+        setAbsenceData(absenceData)
+      } else {
+        console.error('Erro ao carregar dados de faltas:', await absenceResponse.text())
+      }
+
+
+    } catch (error) {
+      console.error('Error loading data:', error)
+      message.error('Erro ao carregar dados')
+    } finally {
+      setLoading(false)
+    }
+  }, [message])
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
@@ -66,49 +107,7 @@ export default function AlunoDashboard() {
 
     setUser(parsedUser)
     loadData(token)
-  }, [router])
-
-  const loadData = async (token: string) => {
-    try {
-      const userId = JSON.parse(localStorage.getItem('user')!).id
-
-      // Carregar check-ins de hoje
-      const today = new Date().toISOString().split('T')[0]
-      const checkInsResponse = await fetch(`/api/checkins?date=${today}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      
-      if (checkInsResponse.ok) {
-        const checkInsData = await checkInsResponse.json()
-        setTodayCheckIns(checkInsData)
-        
-        // Verificar se já fez check-in hoje (apenas pendentes)
-        const userCheckIn = checkInsData.find((c: CheckInWithUser) => c.userId === userId && c.status === 'pending')
-        setHasCheckedInToday(!!userCheckIn)
-        setTodayCheckInStatus(userCheckIn || null)
-      }
-
-      // Carregar dados de faltas do aluno
-      const absenceResponse = await fetch(`/api/students/absences?studentId=${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      
-      if (absenceResponse.ok) {
-        const absenceData = await absenceResponse.json()
-        console.log('Dados de faltas carregados:', absenceData)
-        setAbsenceData(absenceData)
-      } else {
-        console.error('Erro ao carregar dados de faltas:', await absenceResponse.text())
-      }
-
-
-    } catch (error) {
-      console.error('Error loading data:', error)
-      message.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [router, loadData, message])
 
   const handleCheckIn = async () => {
     if (!user) return
@@ -128,7 +127,7 @@ export default function AlunoDashboard() {
 
       if (response.ok) {
         message.success('Check-in realizado com sucesso! Aguarde aprovação do professor.')
-        
+
         // Verificar alertas de faltas consecutivas
         if (data.alert) {
           setCheckInAlert(data.alert)
@@ -138,7 +137,7 @@ export default function AlunoDashboard() {
             message.error(data.alert.message)
           }
         }
-        
+
         setHasCheckedInToday(true)
         loadData(token!)
       } else {
@@ -228,8 +227,8 @@ export default function AlunoDashboard() {
           {/* Header com estilo sutil */}
           <div className="relative mb-6 p-5 rounded-xl bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 border border-slate-700/50">
             <div className="relative z-10">
-              <Title 
-                level={2} 
+              <Title
+                level={2}
                 className="mb-2 text-white"
                 style={{
                   fontSize: '1.875rem',
@@ -243,7 +242,7 @@ export default function AlunoDashboard() {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
                 <div>
-                  <Text 
+                  <Text
                     className="text-base"
                     style={{
                       color: '#cbd5e1',
@@ -252,7 +251,7 @@ export default function AlunoDashboard() {
                     }}
                   >
                     Bem-vindo de volta,{' '}
-                    <span 
+                    <span
                       style={{
                         color: '#60a5fa',
                         fontWeight: '500'
@@ -262,7 +261,7 @@ export default function AlunoDashboard() {
                     </span>
                     !
                   </Text>
-                  <Text 
+                  <Text
                     className="text-sm"
                     style={{
                       color: '#94a3b8',
@@ -282,9 +281,9 @@ export default function AlunoDashboard() {
         {/* Cards de Estatísticas Premium */}
         <Row gutter={[20, 20]}>
           <Col xs={24} sm={12} md={8} lg={4} xl={4}>
-            <Card 
+            <Card
               className="premium-stat-card"
-              style={{ 
+              style={{
                 background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%)',
                 border: '1px solid rgba(59, 130, 246, 0.3)',
                 borderRadius: '16px',
@@ -306,9 +305,9 @@ export default function AlunoDashboard() {
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={4} xl={4}>
-            <Card 
+            <Card
               className="premium-stat-card"
-              style={{ 
+              style={{
                 background: 'linear-gradient(135deg, rgba(5, 46, 22, 0.8) 0%, rgba(22, 101, 52, 0.6) 100%)',
                 border: '1px solid rgba(34, 197, 94, 0.3)',
                 borderRadius: '16px',
@@ -330,9 +329,9 @@ export default function AlunoDashboard() {
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={4} xl={4}>
-            <Card 
+            <Card
               className="premium-stat-card"
-              style={{ 
+              style={{
                 background: 'linear-gradient(135deg, rgba(69, 26, 3, 0.8) 0%, rgba(154, 52, 18, 0.6) 100%)',
                 border: '1px solid rgba(251, 146, 60, 0.3)',
                 borderRadius: '16px',
@@ -354,9 +353,9 @@ export default function AlunoDashboard() {
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={4} xl={4}>
-            <Card 
+            <Card
               className="premium-stat-card"
-              style={{ 
+              style={{
                 background: 'linear-gradient(135deg, rgba(67, 20, 7, 0.8) 0%, rgba(153, 27, 27, 0.6) 100%)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: '16px',
@@ -379,9 +378,9 @@ export default function AlunoDashboard() {
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={4} xl={4}>
-            <Card 
+            <Card
               className="premium-stat-card"
-              style={{ 
+              style={{
                 background: 'linear-gradient(135deg, rgba(69, 10, 10, 0.8) 0%, rgba(127, 29, 29, 0.6) 100%)',
                 border: '1px solid rgba(248, 113, 113, 0.3)',
                 borderRadius: '16px',
@@ -404,10 +403,14 @@ export default function AlunoDashboard() {
           </Col>
         </Row>
 
-        <Row gutter={[16, 16]}>
+        <Divider orientation="center" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          <span style={{ color: '#cbd5e1', fontWeight: '600' }}>Check-in</span>
+        </Divider>
+
+        <Row justify='center'>
           {/* Check-in Card */}
           <Col xs={24} md={12} lg={12}>
-            <Card 
+            <Card
               title={
                 <span className="text-white flex items-center">
                   <CheckCircleOutlined className="mr-2" />
@@ -477,7 +480,7 @@ export default function AlunoDashboard() {
 
         </Row>
 
-        <Row gutter={[16, 16]}>
+        <Row justify={'center'}>
           {/* Check-ins de Hoje */}
           <Col xs={24} lg={12}>
             <Card
